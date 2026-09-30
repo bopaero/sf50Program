@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<!--
+  bop Aero — 2026 SF50 Ownership Program Options
+  Copyright (c) 2026 bop Aero. All rights reserved.
+
+  THIS PAGE IS THE SINGLE SOURCE OF TRUTH for the SF50 program document.
+  The PDF is generated from it (tools/build-pdf.py). To change a figure, edit
+  the inputs in PROGRAM DATA below — every table is calculated from them.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>2026 SF50 Ownership Program Options — bop Aero</title>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WRQ5HZ3LSW"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WRQ5HZ3LSW');
+</script>
+<style>
+:root {
+  --orange: #FF6700;
+  --ink: #1a1a1a;
+  --muted: #6b6b70;
+  --rule: #d9d9de;
+  --stripe: #efeff2;
+  --band-text: #ffffff;
+  --page-bg: #e9e9ec;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--page-bg); color: var(--ink);
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ── Site bar (screen only) ─────────────────────────────────────────────── */
+.sitebar {
+  position: sticky; top: 0; z-index: 10;
+  background: #111; color: #fff;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 8px;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+}
+.sitebar img { height: 30px; width: auto; }
+.sitebar .doc-name { font-weight: bold; font-size: 14px; letter-spacing: .3px; margin-right: auto; }
+.sitebar nav { display: flex; gap: 4px; flex-wrap: wrap; }
+.sitebar nav a {
+  color: #ddd; text-decoration: none; font-size: 12px; padding: 5px 8px; border-radius: 4px;
+}
+.sitebar nav a:hover { background: #2a2a2a; color: #fff; }
+.sitebar .pdf-btn {
+  background: var(--orange); color: #fff; text-decoration: none; font-weight: bold;
+  font-size: 12px; padding: 7px 12px; border-radius: 4px; white-space: nowrap;
+}
+.sitebar .version { font-size: 11px; color: #aaa; }
+
+/* ── Pages ──────────────────────────────────────────────────────────────── */
+.doc { padding: 20px 16px 40px; }
+.page {
+  background: #fff; max-width: 850px; margin: 0 auto 22px;
+  padding: 44px 48px 28px; box-shadow: 0 2px 14px rgba(0,0,0,.12);
+  display: flex; flex-direction: column;
+  scroll-margin-top: 70px;
+}
+.band {
+  background: var(--orange); color: var(--band-text); text-align: center;
+  padding: 16px 20px; font-weight: bold; font-size: 22px; letter-spacing: .2px;
+  text-transform: uppercase; margin-bottom: 24px;
+}
+.band.cover { padding: 12px 20px 16px; margin-bottom: 14px; }
+.band.cover img { display: block; width: 205px; max-width: 60%; height: auto; margin: 0 auto 10px; }
+.band.cover .sub { display: block; text-transform: none; font-size: 14px; margin-top: 4px; }
+.hero { display: block; width: 100%; height: auto; aspect-ratio: 2400 / 691; object-fit: cover; margin-bottom: 26px; }
+h2 { text-align: center; font-size: 20px; margin: 4px 0 8px; }
+h3 { font-size: 15px; margin: 18px 0 6px; }
+p { font-size: 12.5px; line-height: 1.3; margin: 0 0 12px; }
+.note { font-size: 11px; color: var(--muted); line-height: 1.25; margin: 8px 0 0; }
+.key {
+  background: var(--stripe); font-weight: bold; text-align: center;
+  font-size: 12.5px; padding: 9px 16px; margin: 14px 0 0; line-height: 1.35;
+}
+
+/* Tables: horizontally scrollable on narrow screens, never wider than the page */
+.tw { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; }
+th { font-weight: bold; padding: 7px 6px; text-align: center; }
+td { padding: 6px 6px; text-align: center; border-top: 1px solid var(--rule); vertical-align: middle; }
+tbody tr:nth-child(even) td { background: var(--stripe); }
+td:first-child, th:first-child { font-weight: bold; text-align: left; }
+table.grid { table-layout: fixed; }
+table.grid th:first-child { text-align: center; width: 23%; }
+table.kv td:first-child { width: 55%; }
+table.kv td:last-child { text-align: right; }
+table.steps td:first-child { width: 48%; }
+table.steps td:last-child, table.steps th:last-child { text-align: left; }
+table.inc td:last-child, table.inc th:last-child { text-align: left; }
+table.inc td:first-child { width: 48%; }
+table.inc td.big { font-size: 15px; font-weight: bold; }
+table.reserve td:last-child { text-align: left; }
+
+/* Closing contact card */
+.contact {
+  display: flex; gap: 14px; margin-top: auto; padding-top: 24px; align-items: stretch;
+}
+.card {
+  flex: 0 0 64%; background: var(--orange); color: #fff; display: flex; gap: 10px;
+  padding: 10px; font-family: Tahoma, Verdana, Arial, sans-serif; font-weight: bold;
+}
+.card .who { flex: 1; font-size: 15px; line-height: 1.35; }
+.card .who .name { font-size: 22px; margin-bottom: 10px; }
+.card .who .role { font-size: 16px; }
+.card img { width: 48%; height: auto; aspect-ratio: 240 / 195; object-fit: cover; display: block; }
+.costnotes { flex: 1; font-size: 10.5px; color: var(--muted); line-height: 1.25; }
+.costnotes b { display: block; color: var(--ink); font-size: 12px; margin-bottom: 3px; }
+
+/* Page footer: shown on every printed page; on screen only after the last page */
+.pfoot {
+  margin-top: auto; padding-top: 18px; display: grid; grid-template-columns: 1fr 1fr 1fr;
+  font-size: 10.5px; font-weight: bold; letter-spacing: .38em; text-align: center; position: relative;
+}
+.pfoot .ver { position: absolute; right: 0; bottom: -13px; letter-spacing: 0; font-weight: normal; font-size: 9.5px; }
+.page:not(:last-of-type) .pfoot { display: none; }
+
+@media (max-width: 640px) {
+  .sitebar { gap: 8px 10px; padding-bottom: 6px; }
+  .sitebar img { height: 24px; }
+  .sitebar .doc-name { display: none; }
+  .sitebar .pdf-btn { margin-left: auto; padding: 6px 10px; }
+  .sitebar nav { order: 3; flex: 1 0 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .sitebar nav a { white-space: nowrap; padding: 4px 8px; }
+  /* Label column stays put while the program columns scroll sideways.
+     Collapsed borders make Chrome leak scrolled text past a sticky cell. */
+  table.grid { border-collapse: separate; border-spacing: 0; }
+  table.grid td:first-child, table.grid th:first-child { position: sticky; left: 0; z-index: 1; background: #fff; box-shadow: 1px 0 0 var(--rule), -6px 0 0 #fff; }
+  table.grid tbody tr:nth-child(even) td:first-child { background: var(--stripe); box-shadow: 1px 0 0 var(--rule), -6px 0 0 var(--stripe); }
+  .page { padding: 24px 16px 18px; }
+  .band { font-size: 17px; padding: 12px 10px; }
+  h2 { font-size: 17px; }
+  table { font-size: 10.5px; min-width: 520px; }
+  table.kv, table.steps, table.inc { min-width: 0; }
+  .contact { flex-direction: column; }
+  .card { flex-basis: auto; }
+  .pfoot { grid-template-columns: 1fr; gap: 6px; letter-spacing: .2em; }
+  .pfoot .ver { position: static; }
+}
+
+/* ── Print: one Letter page per section, matching the Pages original ───── */
+@page { size: letter; margin: 0; }
+@media print {
+  body { background: #fff; }
+  .sitebar { display: none; }
+  .doc { padding: 0; }
+  .page {
+    width: 8.5in; height: 11in; max-width: none; margin: 0; box-shadow: none;
+    padding: 0.52in 0.55in 0.36in; overflow: hidden;
+    break-after: page; page-break-after: always;
+  }
+  .page:last-of-type { break-after: auto; page-break-after: auto; }
+  .page:not(:last-of-type) .pfoot { display: grid; }
+  .tw { overflow: visible; }
+  /* Type and row sizes measured from the Pages original */
+  .band { margin-bottom: 20px; }
+  .hero { margin-bottom: 20px; }
+  h2 { font-size: 19px; margin: 2px 0 8px; }
+  h3 { font-size: 14px; margin: 14px 0 5px; }
+  p { font-size: 10.5px; margin-bottom: 10px; }
+  .note { font-size: 9.5px; margin-top: 6px; }
+  .key { font-size: 11px; padding: 7px 14px; margin-top: 10px; }
+  table { font-size: 9.5px; }
+  th { padding: 5px 5px; }
+  td { padding: 4px 5px; line-height: 1.15; }
+  table.inc td.big { font-size: 13px; }
+  .card .who { font-size: 14px; }
+  .card .who .name { font-size: 21px; margin-bottom: 8px; }
+  .card .who .role { font-size: 15px; }
+  .costnotes { font-size: 9.5px; }
+  .pfoot { font-size: 9.5px; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<header class="sitebar">
+  <img src="assets/bop-aero-logo-white.svg" alt="bop Aero">
+  <span class="doc-name">2026 SF50 Ownership Program Options</span>
+  <nav aria-label="Sections">
+    <a href="#overview">Overview</a><a href="#economics">Economics</a>
+    <a href="#g1">G1</a><a href="#g2">G2</a><a href="#g2plus">G2+</a><a href="#g3">G3</a>
+    <a href="#reserve">Reserve</a><a href="#costs">Costs</a><a href="#process">Process</a>
+  </nav>
+  <a class="pdf-btn" id="pdfLink" href="bop-Aero-SF50-Ownership-Program-Options.pdf">Download PDF</a>
+  <span class="version" id="barVersion"></span>
+</header>
+
+<main class="doc" id="doc">
+  <noscript><p style="text-align:center">This document needs JavaScript to display.</p></noscript>
+</main>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════════
+//  PROGRAM DATA — the only place any figure is entered.
+//  Everything else on the page (and in the PDF) is calculated from these.
+// ══════════════════════════════════════════════════════════════════════════
+var DOC = {
+  version: 'v2026-09-30.1',
+  pdfFile: 'bop-Aero-SF50-Ownership-Program-Options.pdf'
+};
+
+// Planning values shared by every program
+var COMMON = {
+  fixedCost: 499208,   // Aircraft fixed-cost reference (annual planning allowance, incl. connectivity service)
+  jetstream: 389900,   // JetStream at acquisition
+  closing:   9500,     // Acquisition / closing / registration or setup
+  taxRate:   0.07      // Estimated tax, applied to the aircraft acquisition value
+};
+
+// approx: true  → pre-owned planning values; figures derived from the acquisition side show "~"
+var PROGRAMS = [
+  { key: 'G1', anchor: 'g1', title: 'G1 - Two-Share Near-Exclusive Program', approx: true,
+    shares: 2, acquisition: 1900000, connectivityCost: 0,
+    management: 150000, reserve: 75000, reserveName: 'Aircraft Refresh Reserve',
+    reservePurpose: 'Used-to-used refresh', fixedCostFootnote: true,
+    connectivity: { glance: 'Aircraft-dependent; aftermarket if capable',
+                    comparison: 'Aircraft-dependent; aftermarket if capable',
+                    installation: 'Aircraft-dependent; aftermarket if capable',
+                    allowance: '$0 base assumption' },
+    jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
+    access: 'Two owner shares. Near-exclusive access with approximately four times the owner scheduling concentration of the G3 program.' },
+
+  { key: 'G2', anchor: 'g2', title: 'G2 - Four-Share High-Access Program', approx: true,
+    shares: 4, acquisition: 2600000, connectivityCost: 100000,
+    management: 180000, reserve: 100000, reserveName: 'Aircraft Refresh Reserve',
+    reservePurpose: 'Used-to-used refresh',
+    connectivity: { glance: 'Required aftermarket', comparison: null /* shows the cost */,
+                    installation: 'Required - aftermarket', allowance: null /* shows the cost */ },
+    jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
+    access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
+    pageNote: 'Every G2 program aircraft will have in-flight connectivity. If not already equipped, the approved aftermarket installation is completed before entry into service and capitalized into the program.' },
+
+  { key: 'G2+', anchor: 'g2plus', title: 'G2+ - Four-Share Later-Generation Pre-Owned Program', approx: true,
+    shares: 4, acquisition: 3100000, connectivityCost: 0,
+    management: 180000, reserve: 100000, reserveName: 'Aircraft Refresh Reserve',
+    reservePurpose: 'Used-to-used refresh',
+    connectivity: { glance: 'Included', comparison: 'Included',
+                    installation: 'Included / installed', allowance: 'No additional retrofit' },
+    jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
+    access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
+    pageNote: 'G2+ combines the four-share high-access structure with later-generation pre-owned aircraft and standard connectivity.' },
+
+  { key: 'G3', anchor: 'g3', title: 'G3 - New Aircraft Program', approx: false, isNew: true,
+    shares: 8, acquisition: 3685000, connectivityCost: 0,
+    management: 240000, reserve: 351020, reserveName: 'Future Value Reserve',
+    reservePurpose: 'New-to-new replacement',
+    connectivity: { glance: 'Included', comparison: 'Included',
+                    installation: 'Included / installed', allowance: 'No additional retrofit' },
+    jetstreamLabel: 'JetStream at acquisition', closingLabel: 'Acquisition / closing / program setup',
+    access: 'Eight owner shares. The G3 establishes the 1.0x scheduling baseline and provides the broadest distribution of fixed program costs.',
+    pageNote: 'G3 program pricing reflects the current new-aircraft shared-ownership structure.' }
+];
+
+// Sensitivity table rows: change in annual aircraft cost
+var SENSITIVITY_STEPS = [25000, 50000, 100000];
+
+// ══════════════════════════════════════════════════════════════════════════
+//  CALCULATIONS
+// ══════════════════════════════════════════════════════════════════════════
+var BASELINE = PROGRAMS.filter(function(p){ return p.isNew; })[0]; // schedule concentration is relative to G3
+
+PROGRAMS.forEach(function(p) {
+  p.interests      = p.shares + 1;                     // one interest retained by bop Aero
+  p.equity         = 1 / p.interests;
+  p.allocation     = 1 / p.shares;
+  p.tax            = Math.round(p.acquisition * COMMON.taxRate);
+  p.capitalization = p.acquisition + p.connectivityCost + COMMON.jetstream + p.tax + COMMON.closing;
+  p.capPerShare    = p.capitalization / p.shares;
+  p.annualTotal    = COMMON.fixedCost + p.management + p.reserve;
+  p.annualFee      = p.annualTotal / p.shares;
+  p.reserve5       = p.reserve * 5;
+  p.concentration  = BASELINE.shares / p.shares;
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+//  FORMATTING
+// ══════════════════════════════════════════════════════════════════════════
+function full(n)  { return '$' + Math.round(n).toLocaleString('en-US'); }
+// $1.216M / $3.685M / $1.9M, or $820K / $133K
+function compact(n) {
+  if (Math.abs(n) >= 1e6) return '$' + String(+(n / 1e6).toFixed(3)) + 'M';
+  return '$' + Math.round(n / 1e3) + 'K';
+}
+function tilde(p, s) { return (p.approx ? '~' : '') + s; }
+function pct(x)   { return (x * 100).toFixed(2) + '%'; }
+function share(x) { return String(+(x * 100).toFixed(1)) + '%'; }   // 50%, 25%, 12.5%
+function conc(p, baselineWord) {
+  if (p === BASELINE) return '1.0x' + (baselineWord ? ' baseline' : '');
+  return p.concentration.toFixed(1) + 'x ' + BASELINE.key;
+}
+function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
+
+// ══════════════════════════════════════════════════════════════════════════
+//  RENDERING
+// ══════════════════════════════════════════════════════════════════════════
+function byKey(k) { return PROGRAMS.filter(function(p){ return p.key === k; })[0]; }
+var FEE_LADDER = ['G3', 'G2', 'G2+', 'G1'].map(byKey);   // lowest fee first
+
+// Program-comparison table: rows of [label, function(program) → cell text]
+function grid(headLabel, rows, cls) {
+  var h = '<div class="tw"><table class="grid' + (cls ? ' ' + cls : '') + '"><thead><tr><th>' + headLabel + '</th>' +
+    PROGRAMS.map(function(p){ return '<th>' + p.key + '</th>'; }).join('') + '</tr></thead><tbody>';
+  rows.forEach(function(r) {
+    h += '<tr><td>' + r[0] + '</td>' + PROGRAMS.map(function(p){ return '<td>' + r[1](p) + '</td>'; }).join('') + '</tr>';
+  });
+  return h + '</tbody></table></div>';
+}
+function kv(rows) {
+  return '<div class="tw"><table class="kv"><tbody>' + rows.map(function(r){
+    return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>';
+  }).join('') + '</tbody></table></div>';
+}
+function table(cls, head, rows) {
+  return '<div class="tw"><table class="' + cls + '"><thead><tr>' + head.map(function(c){ return '<th>' + c + '</th>'; }).join('') +
+    '</tr></thead><tbody>' + rows.map(function(r){
+      // An object cell { big: 'None' } renders emphasized. Test the type — every string
+      // inherits a legacy String.prototype.big method, so `c.big` alone is always truthy.
+      return '<tr>' + r.map(function(c){ return typeof c === 'object' ? '<td class="big">' + c.big + '</td>' : '<td>' + c + '</td>'; }).join('') + '</tr>';
+    }).join('') + '</tbody></table></div>';
+}
+function page(id, bandHtml, body) {
+  return '<section class="page" id="' + id + '">' + bandHtml + body +
+    '<footer class="pfoot"><span>bopaero.com</span><span>(513) 450-2FLY</span><span>info@bopaero.com</span>' +
+    '<span class="ver">' + esc(DOC.version) + '</span></footer></section>';
+}
+function band(title) { return '<div class="band">' + esc(title) + '</div>'; }
+
+var G1FOOTNOTE = '*The G1 Annual Program Fee shown uses the standard ' + full(COMMON.fixedCost) + ' fixed-cost planning allowance, including connectivity service. Connectivity capability is aircraft-dependent. If the selected aircraft cannot support connectivity, the applicable recurring internet service expense will be removed from the final Annual Program Fee. Any required aftermarket installation cost is added to program capitalization.';
+
+function coverPage() {
+  var body =
+    '<img class="hero" src="assets/sf50-n867ca-hero.jpg" alt="Cirrus Vision Jet N867CA in flight over a mountain lake">' +
+    '<h2>Ownership Options at a Glance</h2>' +
+    grid('Program', [
+      ['Shares available',            function(p){ return p.shares; }],
+      ['Legal equity / interest',     function(p){ return pct(p.equity); }],
+      ['Illustrative capital / share',function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }],
+      ['Annual Program Fee / share',  function(p){ return p.approx ? tilde(p, compact(p.annualFee)) : full(p.annualFee); }],
+      ['Relative schedule concentration', function(p){ return conc(p); }],
+      ['Connectivity',                function(p){ return esc(p.connectivity.glance); }],
+      ['bop Aero hourly-use fee',     function(){ return '$0'; }]
+    ]) +
+    '<div class="key">You own the aircraft. bop Aero manages it. There is no bop Aero occupied-hour fee to use an aircraft you already own.</div>' +
+    '<p class="note">Each program includes one equal ownership interest retained by bop Aero. Owner program costs are allocated across the shares available for purchase: ' +
+      byKey('G1').shares + ' for G1, ' + byKey('G2').shares + ' for G2/G2+, and ' + byKey('G3').shares + ' for G3.</p>';
+  return page('overview',
+    '<div class="band cover"><img src="assets/bop-aero-logo.svg" alt="bop Aero">2026 SF50 Ownership Program Options' +
+    '<span class="sub">Pre-owned G1, G2, G2+ and New G3</span></div>', body);
+}
+
+function economicsPage() {
+  var body =
+    '<h2>Acquisition &amp; Capitalization</h2>' +
+    '<p>Every program is shown using the same line-item structure so ownership and capitalization can be compared directly.</p>' +
+    grid('Line Item', [
+      ['Total ownership interests',     function(p){ return p.interests; }],
+      ['Shares available for purchase', function(p){ return p.shares; }],
+      ['bop Aero retained interest',    function(){ return 1; }],
+      ['Legal equity per interest',     function(p){ return pct(p.equity); }],
+      ['Owner cost allocation',         function(p){ return share(p.allocation) + ' each'; }],
+      ['Aircraft acquisition value',    function(p){ return tilde(p, compact(p.acquisition)); }],
+      ['Connectivity installation',     function(p){ return p.connectivity.comparison ? esc(p.connectivity.comparison) : tilde(p, compact(p.connectivityCost)) + ' required'; }],
+      ['JetStream at acquisition',      function(p){ return full(COMMON.jetstream) + (p.approx ? ' ref.' : ''); }],
+      ['Estimated tax',                 function(p){ return p.approx ? tilde(p, compact(p.tax)) : full(p.tax); }],
+      ['Acquisition / closing / setup', function(p){ return tilde(p, full(COMMON.closing)); }],
+      ['Total program capitalization',  function(p){ return tilde(p, compact(p.capitalization)); }],
+      ['Capital per available share',   function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }]
+    ]) +
+    '<p class="note">Illustrative figures for G1, G2 and G2+ are planning values and are finalized from the selected aircraft, tax jurisdiction, JetStream status, connectivity configuration and transaction-specific costs.</p>' +
+    '<h2 style="margin-top:34px">Annual Program &amp; Operating Costs</h2>' +
+    grid('Line Item', [
+      ['Aircraft fixed-cost reference',     function(p){ return full(COMMON.fixedCost) + fn(p); }],
+      ['bop Aero management',               function(p){ return full(p.management); }],
+      ['Refresh / Future Value Reserve',    function(p){ return full(p.reserve); }],
+      ['Total annual program requirement',  function(p){ return full(p.annualTotal); }],
+      ['Available owner shares',            function(p){ return p.shares; }],
+      ['Annual Program Fee / owner',        function(p){ return full(p.annualFee); }],
+      ['bop Aero hourly-use charge',        function(){ return 'None'; }],
+      ['Fuel / oil / consumables',          function(){ return 'Actual cost'; }],
+      ['Crew, when required',               function(){ return 'Actual cost'; }],
+      ['Airport / handling',                function(){ return 'Actual cost'; }],
+      ['Artificial occupied-hour markup',   function(){ return 'None'; }],
+      ['Relative schedule concentration',   function(p){ return conc(p); }]
+    ]) +
+    '<div class="key">As owner share count falls, schedule concentration increases. The annual fee rises because fixed aircraft costs are divided among fewer owners - not because bop Aero adds an hourly-use charge.</div>' +
+    '<p class="note">Operational costs are paid as incurred. Final annual pricing for pre-owned aircraft is established from actual aircraft-specific fixed costs, insurance, JetStream pricing and the applicable aircraft refresh reserve.</p>' +
+    '<p class="note" style="margin-top:4px">' + G1FOOTNOTE + '</p>';
+  return page('economics', band('Program Economics Comparison'), body);
+}
+
+function programPage(p) {
+  var connAllowance = p.connectivity.allowance != null ? esc(p.connectivity.allowance) : tilde(p, full(p.connectivityCost));
+  var body =
+    '<h2>Program Structure</h2>' +
+    '<h3>1. Ownership Structure</h3>' + kv([
+      ['Total ownership interests', p.interests],
+      ['Shares available for purchase', p.shares],
+      ['bop Aero retained interest', 1],
+      ['Legal equity per interest', pct(p.equity)],
+      ['Owner cost allocation', share(p.allocation) + ' per owner share'],
+      ['Relative schedule concentration', conc(p, true)]
+    ]) +
+    '<h3>2. Acquisition &amp; Capitalization</h3>' + kv([
+      ['Aircraft acquisition value', tilde(p, full(p.acquisition))],
+      ['Connectivity installation', esc(p.connectivity.installation)],
+      ['Connectivity capital allowance', connAllowance],
+      [esc(p.jetstreamLabel), full(COMMON.jetstream)],
+      ['Estimated tax', tilde(p, full(p.tax))],
+      [esc(p.closingLabel), tilde(p, full(COMMON.closing))],
+      ['Total program capitalization', tilde(p, full(p.capitalization))],
+      ['Capital per available owner share', tilde(p, full(p.capPerShare))]
+    ]) +
+    '<h3>3. Annual Program Economics</h3>' + kv([
+      ['Aircraft fixed-cost reference', full(COMMON.fixedCost) + fn(p)],
+      ['bop Aero management', full(p.management)],
+      [esc(p.reserveName), full(p.reserve)],
+      ['Total annual requirement', full(p.annualTotal)],
+      ['Available owner shares', p.shares],
+      ['Annual Program Fee / owner', full(p.annualFee)]
+    ]) +
+    '<h3>4. Operating Costs</h3>' + kv([
+      ['bop Aero hourly-use charge', 'None'],
+      ['Fuel / oil / consumables', 'Owner actual operating cost'],
+      ['Crew, when required', 'Owner actual cost'],
+      ['Airport / handling costs', 'Owner actual cost'],
+      ['Artificial occupied-hour markup', 'None']
+    ]) +
+    '<h3>5. Access</h3>' +
+    '<div class="key" style="margin-top:6px">' + esc(p.access) + '</div>' +
+    '<p class="note">' + (p.fixedCostFootnote ? G1FOOTNOTE : esc(p.pageNote)) + '</p>';
+  return page(p.anchor, band(p.title), body);
+}
+
+function reservePage() {
+  var body =
+    '<h2>Reserve Guidance by Program</h2>' +
+    '<p>The pre-owned programs use a different refresh approach than G3. G3 is designed to support replacement of a new aircraft with another new aircraft. G1, G2 and G2+ are designed to support the gap between the net resale proceeds of the existing aircraft and the cost of acquiring a newer pre-owned replacement.</p>' +
+    table('grid reserve', ['Program', 'Working Aircraft Value', 'Annual Reserve', '5-Year Reserve', 'Purpose'],
+      PROGRAMS.map(function(p){ return [p.key, tilde(p, compact(p.acquisition)) + (p.isNew ? ' new' : ''), full(p.reserve),
+        p.reserve5 >= 1e6 ? compact(p.reserve5) : full(p.reserve5), esc(p.reservePurpose)]; })) +
+    '<h3 style="margin-top:26px">How the Reserve Works</h3>' +
+    '<p>At aircraft selection, bop Aero evaluates current aircraft value, expected resale value and the observed market-value gap to a newer replacement aircraft. This establishes the refresh reserve appropriate to the selected aircraft and program.</p>' +
+    '<div class="key" style="margin-top:0">The reserve is designed to preserve the program replacement cycle without adding a bop Aero hourly-use charge.</div>' +
+    '<h3 style="margin-top:26px">Annual Program Fee Ladder</h3>' +
+    table('grid', ['Program', 'Owner Shares', 'Annual Program Fee', 'Schedule Concentration'],
+      FEE_LADDER.map(function(p){ return [p.key, p.shares, full(p.annualFee), conc(p)]; }));
+  return page('reserve', band('Five-Year Aircraft Refresh / Future Value Reserve'), body);
+}
+
+function costsPage() {
+  var g1 = byKey('G1'), g2 = byKey('G2'), g3 = byKey('G3');
+  var body =
+    '<h2>Aircraft-Specific Variables</h2>' +
+    '<p>Final program pricing is confirmed from the selected aircraft. JetStream, insurance, installed equipment, connectivity, tax treatment, aircraft condition and the five-year refresh requirement can affect the final economics.</p>' +
+    '<h3>Sensitivity to Changes in Annual Aircraft Cost</h3>' +
+    table('grid', ['Change in Annual Aircraft Cost', 'G1 Impact / Owner (' + g1.shares + ')', 'G2 / G2+ Impact / Owner (' + g2.shares + ')', 'G3 Impact / Owner (' + g3.shares + ')'],
+      SENSITIVITY_STEPS.map(function(d){ return [full(d), '+' + full(d / g1.shares), '+' + full(d / g2.shares), '+' + full(d / g3.shares)]; })) +
+    '<h3 style="margin-top:26px">What Is Included in the Annual Program Fee</h3>' +
+    table('inc', ['Category', 'Treatment'], [
+      ['Aircraft fixed costs', 'Included in Annual Program Fee'],
+      ['bop Aero management', 'Included in Annual Program Fee'],
+      ['Refresh / Future Value Reserve', 'Included in Annual Program Fee'],
+      ['bop Aero occupied-hour charge', { big: 'None' }],
+      ['Fuel, oil and consumables', 'Actual owner operating cost'],
+      ['Crew, airport and handling', 'Actual owner operating cost, when applicable']
+    ]) +
+    '<div class="key">Owners pay the actual cost of operating their aircraft. bop Aero does not add an occupied-hour charge for the privilege of using an aircraft the owners already own.</div>' +
+    '<p class="note">Illustrative pre-owned program figures are planning values. Final pricing is established in the applicable ownership and management agreements after the specific aircraft is selected.</p>';
+  return page('costs', band('Cost Considerations'), body);
+}
+
+function processPage() {
+  var body =
+    '<h2>From Program Selection to Aircraft Entry Into Service</h2>' +
+    table('steps', ['Step', 'What Happens'], [
+      ['1. Choose your access level', 'Select G3, four-share G2/G2+, or two-share G1 based on aircraft generation, capital level and desired schedule access.'],
+      ['2. Establish aircraft criteria', 'bop Aero establishes the aircraft generation, equipment, connectivity and condition criteria for the selected program.'],
+      ['3. Confirm program economics', 'Aircraft-specific acquisition cost, JetStream, insurance, taxes, fixed costs and the refresh reserve are incorporated into final pricing.'],
+      ['4. Complete owner commitments', 'The required owner shares complete ownership documentation and fund the acquisition.'],
+      ['5. Acquire and onboard the aircraft', 'bop Aero acquires, equips and places the aircraft into service for the ownership group, including required connectivity for G2 and G2+.']
+    ]) +
+    '<h3 style="margin-top:26px">Program Options at a Glance</h3>' +
+    table('grid', ['Program', 'Shares Available', 'Capital / Share', 'Annual Program Fee', 'Schedule Concentration'],
+      PROGRAMS.map(function(p){ return [p.key, p.shares, tilde(p, full(p.capPerShare)), full(p.annualFee), conc(p)]; })) +
+    '<div class="key">Choose the ownership experience that fits your mission: current-generation aircraft with broad cost sharing, or pre-owned aircraft with fewer co-owners and greater schedule concentration.</div>' +
+    '<div class="contact">' +
+      '<div class="card"><div class="who"><div class="name">Raymond Chase</div><div class="role">President &amp; CEO</div>' +
+        '859.419.8645<br>513.450.2FLY<br>raymond@bopaero.com</div>' +
+        '<img src="assets/raymond-chase.jpg" alt="Raymond Chase, President and CEO of bop Aero"></div>' +
+      '<div class="costnotes"><b>Important Cost Notes</b>Program pricing and annual fees may change based on aircraft selection, taxes, insurance, JetStream, installed equipment and market conditions. Operational costs such as fuel, oil, crew and owner-pilot training are not included in the Annual Program Fee unless specifically stated. Final economics and program terms are established in the applicable ownership and management agreements.</div>' +
+    '</div>';
+  return page('process', band('How the Ownership Process Works'), body);
+}
+
+document.getElementById('doc').innerHTML =
+  coverPage() + economicsPage() + PROGRAMS.map(programPage).join('') +
+  reservePage() + costsPage() + processPage();
+document.getElementById('barVersion').textContent = DOC.version;
+document.getElementById('pdfLink').href = DOC.pdfFile;
+document.title = '2026 SF50 Ownership Program Options — bop Aero';
+</script>
+</body>
+</html>

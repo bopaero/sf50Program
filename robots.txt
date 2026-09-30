@@ -1,0 +1,5 @@
+# Unlisted: the page carries <meta name="robots" content="noindex">.
+# Keep crawlers out of the PDFs, which can't carry that tag.
+User-agent: *
+Disallow: /*.pdf$
+Disallow: /versions/
