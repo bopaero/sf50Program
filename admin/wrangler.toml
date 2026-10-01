@@ -12,10 +12,10 @@ globs = ["**/*.html"]
 [vars]
 GITHUB_REPO = "bopaero/sf50Program"
 ALLOWED_EMAILS = "raymond@bopaero.com"
-# Filled in once Cloudflare Access is enabled for this workers.dev hostname.
-# Until then the Worker refuses every request (fails closed).
-ACCESS_TEAM_DOMAIN = ""
-ACCESS_AUD = ""
+# Cloudflare Access on this workers.dev hostname (enabled 2026-10-01). Neither
+# value is secret. If either is emptied, the Worker refuses every request.
+ACCESS_TEAM_DOMAIN = "calm-field-898f.cloudflareaccess.com"
+ACCESS_AUD = "dec5d15a5d506d8e1e8de261b37c723fd49d3907165e953337efca77b21ae9d0"
 
 # Secret (never in this public repo):
 #   GITHUB_TOKEN — fine-grained token, bopaero/sf50Program only,
