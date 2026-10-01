@@ -62,6 +62,9 @@ body {
 }
 .sitebar .version { font-size: 11px; color: #aaa; }
 
+/* In the costing editor's preview the bar's Download PDF would fetch the PUBLISHED PDF, not the draft */
+body.preview .sitebar { display: none; }
+
 /* ── Pages ──────────────────────────────────────────────────────────────── */
 .doc { padding: 20px 16px 40px; }
 .page {

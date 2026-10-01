@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>SF50 Costing Editor — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#f3f3f5; --warn:#b45309; --warn-bg:#fff4e5; --bad:#b91c1c; --ok:#047857; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color:var(--ink); background:#eceef1; }
+header { position:sticky; top:0; z-index:5; background:#111; color:#fff; padding: calc(env(safe-area-inset-top,0px) + 10px) 16px 10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+header h1 { font-size:16px; margin:0 auto 0 0; }
+header .who, header .ver { font-size:12px; color:#bbb; }
+.wrap { display:grid; grid-template-columns: minmax(0, 560px) minmax(0, 1fr); gap:16px; padding:16px; align-items:start; }
+.panel { background:#fff; border-radius:8px; padding:16px; box-shadow:0 1px 6px rgba(0,0,0,.08); }
+h2 { font-size:15px; margin:0 0 10px; }
+h2 small { font-weight:normal; color:var(--muted); font-size:12px; }
+.tw { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th, td { padding:5px 6px; border-top:1px solid var(--rule); text-align:right; white-space:nowrap; }
+th:first-child, td:first-child { text-align:left; font-weight:600; white-space:normal; }
+thead th { border-top:0; font-size:12px; color:var(--muted); }
+input[type=text] { width:100%; min-width:92px; font:inherit; font-size:14px; padding:5px 6px; text-align:right; border:1px solid var(--rule); border-radius:4px; }
+input[type=text]:focus { outline:2px solid var(--orange); outline-offset:-1px; }
+input.changed { background:#fff8ec; border-color:#f0b35c; }
+input.invalid { border-color:var(--bad); background:#fdecec; }
+.common td input { max-width:160px; }
+td.delta { font-size:11px; color:var(--muted); }
+td.delta.big { color:var(--warn); font-weight:700; }
+.warnings { margin-top:12px; }
+.warnings div { background:var(--warn-bg); color:var(--warn); border-left:3px solid var(--warn); padding:7px 10px; font-size:13px; margin-top:6px; }
+.errors div { background:#fdecec; color:var(--bad); border-left:3px solid var(--bad); padding:7px 10px; font-size:13px; margin-top:6px; }
+.publish { margin-top:16px; border-top:1px solid var(--rule); padding-top:14px; }
+textarea { width:100%; font:inherit; font-size:14px; padding:8px; border:1px solid var(--rule); border-radius:4px; min-height:56px; }
+button { font:inherit; font-size:14px; font-weight:700; border:0; border-radius:5px; padding:9px 16px; cursor:pointer; }
+button.primary { background:var(--orange); color:#fff; }
+button.secondary { background:#e5e7eb; color:var(--ink); }
+button:disabled { opacity:.45; cursor:default; }
+.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+.confirm { margin-top:12px; padding:12px; border:2px solid var(--orange); border-radius:6px; background:#fffaf5; font-size:13px; }
+.confirm ul { margin:6px 0 10px; padding-left:18px; }
+.status { margin-top:12px; font-size:13px; }
+.status.ok { color:var(--ok); font-weight:700; }
+.status.bad { color:var(--bad); font-weight:700; }
+.preview { position:sticky; top:62px; height: calc(100vh - 80px); padding:0; overflow:hidden; display:flex; flex-direction:column; }
+.preview .bar { padding:8px 12px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--rule); background:var(--warn-bg); }
+.preview iframe { flex:1; width:100%; border:0; }
+.muted { color:var(--muted); font-size:12px; }
+@media (max-width: 1000px) {
+  .wrap { grid-template-columns: 1fr; }
+  .preview { position:static; height:80vh; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>SF50 Costing Editor</h1>
+  <span class="ver" id="pubVersion">Loading…</span>
+  <span class="who">Signed in as {{USER}}</span>
+</header>
+
+<div class="wrap">
+  <div>
+    <section class="panel">
+      <h2>Shared planning values <small>apply to every program</small></h2>
+      <div class="tw"><table class="common"><tbody id="commonRows"></tbody></table></div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Program inputs</h2>
+      <div class="tw"><table><thead id="progHead"></thead><tbody id="progRows"></tbody></table></div>
+      <p class="muted">"Approximate" marks pre-owned planning values: acquisition-side figures print with "~".</p>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
+      <h2>Resulting figures <small>change vs. published</small></h2>
+      <div class="tw"><table><thead id="resHead"></thead><tbody id="resRows"></tbody></table></div>
+      <div class="errors" id="errors"></div>
+      <div class="warnings" id="warnings"></div>
+
+      <div class="publish">
+        <h2>Publish</h2>
+        <label for="note" class="muted">What changed and why (becomes the change note)</label>
+        <textarea id="note" maxlength="300" placeholder="e.g. G2 acquisition updated to the N123AB purchase price"></textarea>
+        <div class="row">
+          <button class="primary" id="reviewBtn" disabled>Review &amp; publish…</button>
+          <button class="secondary" id="resetBtn" disabled>Discard changes</button>
+          <span class="muted" id="dirtyNote">No changes yet.</span>
+        </div>
+        <div class="confirm" id="confirmBox" hidden>
+          <b>Publish these changes as the next version?</b>
+          <ul id="confirmList"></ul>
+          The website and PDF update together in about two minutes.
+          <div class="row">
+            <button class="primary" id="publishBtn">Publish</button>
+            <button class="secondary" id="cancelBtn">Back to editing</button>
+          </div>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel preview">
+    <div class="bar">PREVIEW of the document with your unpublished changes. Nothing here is public until you publish.</div>
+    <iframe id="preview" title="Document preview" src="https://sf50program.bopaero.com/?preview"></iframe>
+  </section>
+</div>
+
+<script src="https://sf50program.bopaero.com/assets/costing.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SITE = 'https://sf50program.bopaero.com';
+  var COMMON_FIELDS = [
+    ['fixedCost', 'Aircraft fixed-cost reference (annual)', 'money'],
+    ['jetstream', 'JetStream at acquisition', 'money'],
+    ['closing', 'Acquisition / closing / setup', 'money'],
+    ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct']
+  ];
+  var PROG_FIELDS = [
+    ['shares', 'Shares available for purchase', 'int'],
+    ['acquisition', 'Aircraft acquisition value', 'money'],
+    ['connectivityCost', 'Connectivity installation cost', 'money'],
+    ['management', 'bop Aero management (annual)', 'money'],
+    ['reserve', 'Refresh / Future Value Reserve (annual)', 'money'],
+    ['approx', 'Approximate (pre-owned planning values)', 'bool']
+  ];
+  var RESULTS = [
+    ['capitalization', 'Total program capitalization'],
+    ['capPerShare', 'Capital per available share', true],
+    ['annualTotal', 'Total annual program requirement'],
+    ['annualFee', 'Annual Program Fee / owner', true],
+    ['concentration', 'Schedule concentration']
+  ];
+  var BIG_CHANGE = 0.10;   // warn when a per-owner figure moves more than 10%
+
+  var published = null, sha = null, draft = null, previewReady = false, sendTimer = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function shown(kind, v) {
+    if (kind === 'money') return Math.round(v).toLocaleString('en-US');
+    if (kind === 'pct') return String(+(v * 100).toFixed(3));
+    return String(v);
+  }
+  function parse(kind, raw) {
+    var s = String(raw).replace(/[$,%\s]/g, '');
+    if (!/^-?\d*\.?\d+$/.test(s)) return NaN;
+    var n = Number(s);
+    return kind === 'pct' ? n / 100 : n;
+  }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function load() {
+    fetch('/api/costing', { cache: 'no-store' })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function (j) {
+        published = j.costing; sha = j.sha; draft = clone(published);
+        $('pubVersion').textContent = 'Published: ' + published.version;
+        build(); refresh();
+      })
+      .catch(function (e) { setStatus('Could not load costing: ' + e.message, 'bad'); });
+  }
+
+  function input(id, kind, value, onchange) {
+    if (kind === 'bool') {
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = id; cb.checked = value;
+      cb.addEventListener('change', function () { onchange(cb.checked, cb); });
+      return cb;
+    }
+    var el = document.createElement('input');
+    el.type = 'text'; el.id = id; el.inputMode = kind === 'int' ? 'numeric' : 'decimal'; el.autocomplete = 'off';
+    el.value = shown(kind, value);
+    el.addEventListener('input', function () {
+      var v = parse(kind, el.value);
+      el.classList.toggle('invalid', !isFinite(v));
+      if (isFinite(v)) onchange(v, el);
+    });
+    el.addEventListener('blur', function () { var v = parse(kind, el.value); if (isFinite(v)) el.value = shown(kind, v); });
+    return el;
+  }
+
+  function build() {
+    var cr = $('commonRows'); cr.innerHTML = '';
+    COMMON_FIELDS.forEach(function (f) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + f[1] + (f[2] === 'pct' ? ' (%)' : ' ($)') + '</td><td></td>';
+      tr.lastChild.appendChild(input('c_' + f[0], f[2], draft.common[f[0]], function (v, el) {
+        draft.common[f[0]] = v; el.classList.toggle('changed', v !== published.common[f[0]]); refresh();
+      }));
+      cr.appendChild(tr);
+    });
+    var keys = draft.programs.map(function (p) { return p.key; });
+    var head = '<tr><th></th>' + keys.map(function (k) { return '<th>' + k + '</th>'; }).join('') + '</tr>';
+    $('progHead').innerHTML = head; $('resHead').innerHTML = head;
+    var pr = $('progRows'); pr.innerHTML = '';
+    PROG_FIELDS.forEach(function (f) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + f[1] + '</td>';
+      draft.programs.forEach(function (p, i) {
+        var td = document.createElement('td');
+        td.appendChild(input('p_' + i + '_' + f[0], f[2], p[f[0]], function (v, el) {
+          p[f[0]] = v; el.classList.toggle('changed', v !== published.programs[i][f[0]]); refresh();
+        }));
+        if (f[2] === 'bool') td.style.textAlign = 'center';
+        tr.appendChild(td);
+      });
+      pr.appendChild(tr);
+    });
+  }
+
+  function changes() {
+    var out = [];
+    COMMON_FIELDS.forEach(function (f) {
+      var a = published.common[f[0]], b = draft.common[f[0]];
+      if (a !== b) out.push(f[1] + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
+    });
+    draft.programs.forEach(function (p, i) {
+      PROG_FIELDS.forEach(function (f) {
+        var a = published.programs[i][f[0]], b = p[f[0]];
+        if (a !== b) out.push(p.key + ' ' + f[1] + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
+      });
+    });
+    return out;
+  }
+  function fmt(kind, v) { return kind === 'money' ? money(v) : kind === 'pct' ? (v * 100).toFixed(2) + '%' : String(v); }
+
+  function refresh() {
+    var candidate = clone(draft);
+    var errors = SF50Costing.validate(candidate);
+    $('errors').innerHTML = errors.map(function (e) { return '<div>' + e + '</div>'; }).join('');
+    var warnings = [];
+    if (!errors.length) {
+      var now = SF50Costing.derive(candidate), was = SF50Costing.derive(published);
+      var rows = '';
+      RESULTS.forEach(function (r) {
+        rows += '<tr><td>' + r[1] + '</td>';
+        now.programs.forEach(function (p, i) {
+          var v = p[r[0]], o = was.programs[i][r[0]];
+          rows += '<td>' + (r[0] === 'concentration' ? v.toFixed(1) + 'x' : money(v)) + '</td>';
+          if (r[2] && o && Math.abs(v - o) / o > BIG_CHANGE)
+            warnings.push(p.key + ' ' + r[1] + ' moves ' + Math.round((v - o) / o * 100) + '% (' + money(o) + ' → ' + money(v) + '). Check this is intended.');
+        });
+        rows += '</tr>';
+        rows += '<tr><td class="delta"></td>' + now.programs.map(function (p, i) {
+          var v = p[r[0]], o = was.programs[i][r[0]];
+          if (Math.abs(v - o) < 0.5 || r[0] === 'concentration') return '<td class="delta"></td>';
+          var pctChange = o ? (v - o) / o : 0, big = Math.abs(pctChange) > BIG_CHANGE;
+          return '<td class="delta' + (big ? ' big' : '') + '">' + (v > o ? '+' : '−') + money(Math.abs(v - o)).slice(0) + ' (' + (pctChange * 100).toFixed(1) + '%)</td>';
+        }).join('') + '</tr>';
+      });
+      $('resRows').innerHTML = rows;
+      draft.programs.forEach(function (p, i) {
+        var o = published.programs[i];
+        if (p.shares !== o.shares) warnings.push(p.key + ' share count changes ' + o.shares + ' → ' + p.shares + ': this changes legal equity per interest and schedule concentration, not just pricing.');
+        if (o.approx && !p.approx) warnings.push(p.key + ' will show firm figures (no "~"). Only do this once the aircraft and its price are confirmed.');
+      });
+    }
+    $('warnings').innerHTML = warnings.map(function (w) { return '<div>⚠ ' + w + '</div>'; }).join('');
+    var list = changes(), dirty = list.length > 0;
+    $('reviewBtn').disabled = !dirty || errors.length > 0;
+    $('resetBtn').disabled = !dirty;
+    $('dirtyNote').textContent = dirty ? list.length + ' change' + (list.length > 1 ? 's' : '') + ' not published.' : 'No changes yet.';
+    $('confirmBox').hidden = true;
+    if (!errors.length) schedulePreview();
+  }
+
+  function schedulePreview() {
+    clearTimeout(sendTimer);
+    sendTimer = setTimeout(function () {
+      if (previewReady) $('preview').contentWindow.postMessage({ type: 'sf50-costing-preview', costing: clone(draft) }, SITE);
+    }, 250);
+  }
+  window.addEventListener('message', function (e) {
+    if (e.origin !== SITE || !e.data) return;
+    if (e.data.type === 'sf50-preview-ready') { previewReady = true; if (draft) schedulePreview(); }
+    if (e.data.type === 'sf50-preview-rendered' && !e.data.ok) setStatus('Preview error: ' + e.data.error, 'bad');
+  });
+
+  function setStatus(msg, cls) { var s = $('status'); s.textContent = msg; s.className = 'status' + (cls ? ' ' + cls : ''); }
+
+  $('resetBtn').addEventListener('click', function () { draft = clone(published); build(); refresh(); setStatus(''); });
+  $('reviewBtn').addEventListener('click', function () {
+    if (!$('note').value.trim()) { setStatus('Add a short note describing the change first.', 'bad'); $('note').focus(); return; }
+    $('confirmList').innerHTML = changes().map(function (c) { return '<li>' + c + '</li>'; }).join('');
+    $('confirmBox').hidden = false; setStatus('');
+  });
+  $('cancelBtn').addEventListener('click', function () { $('confirmBox').hidden = true; });
+  $('publishBtn').addEventListener('click', function () {
+    $('publishBtn').disabled = true; setStatus('Publishing…');
+    fetch('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ costing: draft, sha: sha, note: $('note').value.trim() }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function (j) {
+        $('confirmBox').hidden = true; $('note').value = '';
+        setStatus(j.version + ' committed. Building the PDF and updating the site…');
+        poll(j.commit, j.version, 0);
+      })
+      .catch(function (e) { setStatus(e.message, 'bad'); $('publishBtn').disabled = false; });
+  });
+
+  function poll(commit, version, n) {
+    fetch('/api/status?commit=' + commit, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+      if (s.state === 'live') {
+        setStatus(version + ' is live on ' + SITE.replace('https://', '') + ' with its PDF.', 'ok');
+        load(); $('publishBtn').disabled = false;
+      } else if (s.state === 'failed') {
+        setStatus(version + ' was committed but the publish failed, so the site still shows the previous version. Details: ' + (s.url || 'GitHub Actions'), 'bad');
+        $('publishBtn').disabled = false;
+      } else if (n < 60) {
+        setTimeout(function () { poll(commit, version, n + 1); }, 6000);
+      } else {
+        setStatus('Still building after 6 minutes — check GitHub Actions.', 'bad');
+      }
+    });
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

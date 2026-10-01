@@ -1,0 +1,23 @@
+name = "sf50-costing"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+preview_urls = false
+
+# editor.html is bundled into the Worker as a string
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+
+[vars]
+GITHUB_REPO = "bopaero/sf50Program"
+ALLOWED_EMAILS = "raymond@bopaero.com"
+# Filled in once Cloudflare Access is enabled for this workers.dev hostname.
+# Until then the Worker refuses every request (fails closed).
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+
+# Secret (never in this public repo):
+#   GITHUB_TOKEN — fine-grained token, bopaero/sf50Program only,
+#                  Contents: read & write, Actions: read
+#   set with:  pbpaste | npx wrangler secret put GITHUB_TOKEN -c admin/wrangler.toml
