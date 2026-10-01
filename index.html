@@ -3,9 +3,11 @@
   bop Aero — 2026 SF50 Ownership Program Options
   Copyright (c) 2026 bop Aero. All rights reserved.
 
-  THIS PAGE IS THE SINGLE SOURCE OF TRUTH for the SF50 program document.
-  The PDF is generated from it (tools/build-pdf.py). To change a figure, edit
-  the inputs in PROGRAM DATA below — every table is calculated from them.
+  This page is the SF50 program document; the PDF is generated from it.
+  COSTING (every figure) lives in data/costing.json, edited only through the
+  private costing editor, and is calculated by assets/costing.js — the same
+  code the costing editor and the website calculator use. This file holds the
+  document's wording and layout only.
 -->
 <html lang="en">
 <head>
@@ -203,30 +205,17 @@ table.reserve td:last-child { text-align: left; }
   <noscript><p style="text-align:center">This document needs JavaScript to display.</p></noscript>
 </main>
 
+<script src="assets/costing.js"></script>
 <script>
-// ══════════════════════════════════════════════════════════════════════════
-//  PROGRAM DATA — the only place any figure is entered.
-//  Everything else on the page (and in the PDF) is calculated from these.
-// ══════════════════════════════════════════════════════════════════════════
-var DOC = {
-  version: 'v2026-09-30.1',
-  pdfFile: 'bop-Aero-SF50-Ownership-Program-Options.pdf'
-};
+var PDF_FILE = 'bop-Aero-SF50-Ownership-Program-Options.pdf';
 
-// Planning values shared by every program
-var COMMON = {
-  fixedCost: 499208,   // Aircraft fixed-cost reference (annual planning allowance, incl. connectivity service)
-  jetstream: 389900,   // JetStream at acquisition
-  closing:   9500,     // Acquisition / closing / registration or setup
-  taxRate:   0.07      // Estimated tax, applied to the aircraft acquisition value
-};
-
-// approx: true  → pre-owned planning values; figures derived from the acquisition side show "~"
-var PROGRAMS = [
-  { key: 'G1', anchor: 'g1', title: 'G1 - Two-Share Near-Exclusive Program', approx: true,
-    shares: 2, acquisition: 1900000, connectivityCost: 0,
-    management: 150000, reserve: 75000, reserveName: 'Aircraft Refresh Reserve',
-    reservePurpose: 'Used-to-used refresh', fixedCostFootnote: true,
+// ══════════════════════════════════════════════════════════════════════════
+//  PROGRAM WORDING — text that differs by program. No figures here: those
+//  come from data/costing.json, matched to these entries by key.
+// ══════════════════════════════════════════════════════════════════════════
+var PROGRAM_TEXT = {
+  'G1': { anchor: 'g1', title: 'G1 - Two-Share Near-Exclusive Program',
+    reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh', fixedCostFootnote: true,
     connectivity: { glance: 'Aircraft-dependent; aftermarket if capable',
                     comparison: 'Aircraft-dependent; aftermarket if capable',
                     installation: 'Aircraft-dependent; aftermarket if capable',
@@ -234,57 +223,53 @@ var PROGRAMS = [
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Two owner shares. Near-exclusive access with approximately four times the owner scheduling concentration of the G3 program.' },
 
-  { key: 'G2', anchor: 'g2', title: 'G2 - Four-Share High-Access Program', approx: true,
-    shares: 4, acquisition: 2600000, connectivityCost: 100000,
-    management: 180000, reserve: 100000, reserveName: 'Aircraft Refresh Reserve',
-    reservePurpose: 'Used-to-used refresh',
+  'G2': { anchor: 'g2', title: 'G2 - Four-Share High-Access Program',
+    reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
     connectivity: { glance: 'Required aftermarket', comparison: null /* shows the cost */,
                     installation: 'Required - aftermarket', allowance: null /* shows the cost */ },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
     pageNote: 'Every G2 program aircraft will have in-flight connectivity. If not already equipped, the approved aftermarket installation is completed before entry into service and capitalized into the program.' },
 
-  { key: 'G2+', anchor: 'g2plus', title: 'G2+ - Four-Share Later-Generation Pre-Owned Program', approx: true,
-    shares: 4, acquisition: 3100000, connectivityCost: 0,
-    management: 180000, reserve: 100000, reserveName: 'Aircraft Refresh Reserve',
-    reservePurpose: 'Used-to-used refresh',
+  'G2+': { anchor: 'g2plus', title: 'G2+ - Four-Share Later-Generation Pre-Owned Program',
+    reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
     connectivity: { glance: 'Included', comparison: 'Included',
                     installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
     pageNote: 'G2+ combines the four-share high-access structure with later-generation pre-owned aircraft and standard connectivity.' },
 
-  { key: 'G3', anchor: 'g3', title: 'G3 - New Aircraft Program', approx: false, isNew: true,
-    shares: 8, acquisition: 3685000, connectivityCost: 0,
-    management: 240000, reserve: 351020, reserveName: 'Future Value Reserve',
-    reservePurpose: 'New-to-new replacement',
+  'G3': { anchor: 'g3', title: 'G3 - New Aircraft Program', isNew: true,
+    reserveName: 'Future Value Reserve', reservePurpose: 'New-to-new replacement',
     connectivity: { glance: 'Included', comparison: 'Included',
                     installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream at acquisition', closingLabel: 'Acquisition / closing / program setup',
     access: 'Eight owner shares. The G3 establishes the 1.0x scheduling baseline and provides the broadest distribution of fixed program costs.',
     pageNote: 'G3 program pricing reflects the current new-aircraft shared-ownership structure.' }
-];
+};
 
-// Sensitivity table rows: change in annual aircraft cost
-var SENSITIVITY_STEPS = [25000, 50000, 100000];
+// Set from the costing by applyCosting(), then read by every page builder
+var DOC, COMMON, PROGRAMS, BASELINE, SENSITIVITY_STEPS, FEE_LADDER;
 
-// ══════════════════════════════════════════════════════════════════════════
-//  CALCULATIONS
-// ══════════════════════════════════════════════════════════════════════════
-var BASELINE = PROGRAMS.filter(function(p){ return p.isNew; })[0]; // schedule concentration is relative to G3
-
-PROGRAMS.forEach(function(p) {
-  p.interests      = p.shares + 1;                     // one interest retained by bop Aero
-  p.equity         = 1 / p.interests;
-  p.allocation     = 1 / p.shares;
-  p.tax            = Math.round(p.acquisition * COMMON.taxRate);
-  p.capitalization = p.acquisition + p.connectivityCost + COMMON.jetstream + p.tax + COMMON.closing;
-  p.capPerShare    = p.capitalization / p.shares;
-  p.annualTotal    = COMMON.fixedCost + p.management + p.reserve;
-  p.annualFee      = p.annualTotal / p.shares;
-  p.reserve5       = p.reserve * 5;
-  p.concentration  = BASELINE.shares / p.shares;
-});
+function applyCosting(costing) {
+  var problems = SF50Costing.validate(costing);
+  if (problems.length) throw new Error('Costing is invalid: ' + problems.join('; '));
+  var d = SF50Costing.derive(costing);
+  var missing = d.programs.filter(function(p){ return !PROGRAM_TEXT[p.key]; }).map(function(p){ return p.key; });
+  if (missing.length) throw new Error('No document wording for program ' + missing.join(', '));
+  DOC = { version: d.version, pdfFile: PDF_FILE };
+  COMMON = d.common;
+  SENSITIVITY_STEPS = d.sensitivitySteps;
+  PROGRAMS = d.programs.map(function(p) {
+    var t = PROGRAM_TEXT[p.key];
+    for (var k in t) p[k] = t[k];
+    return p;
+  });
+  BASELINE = d.baseline;                                // schedule concentration is relative to this program
+  FEE_LADDER = PROGRAMS.map(function(p, i){ return { p: p, i: i }; })
+    .sort(function(x, y){ return x.p.annualFee - y.p.annualFee || x.i - y.i; })   // lowest fee first
+    .map(function(x){ return x.p; });
+}
 
 // ══════════════════════════════════════════════════════════════════════════
 //  FORMATTING
@@ -309,7 +294,6 @@ function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
 //  RENDERING
 // ══════════════════════════════════════════════════════════════════════════
 function byKey(k) { return PROGRAMS.filter(function(p){ return p.key === k; })[0]; }
-var FEE_LADDER = ['G3', 'G2', 'G2+', 'G1'].map(byKey);   // lowest fee first
 
 // Program-comparison table: rows of [label, function(program) → cell text]
 function grid(headLabel, rows, cls) {
@@ -340,7 +324,7 @@ function page(id, bandHtml, body) {
 }
 function band(title) { return '<div class="band">' + esc(title) + '</div>'; }
 
-var G1FOOTNOTE = '*The G1 Annual Program Fee shown uses the standard ' + full(COMMON.fixedCost) + ' fixed-cost planning allowance, including connectivity service. Connectivity capability is aircraft-dependent. If the selected aircraft cannot support connectivity, the applicable recurring internet service expense will be removed from the final Annual Program Fee. Any required aftermarket installation cost is added to program capitalization.';
+function g1Footnote() { return '*The G1 Annual Program Fee shown uses the standard ' + full(COMMON.fixedCost) + ' fixed-cost planning allowance, including connectivity service. Connectivity capability is aircraft-dependent. If the selected aircraft cannot support connectivity, the applicable recurring internet service expense will be removed from the final Annual Program Fee. Any required aftermarket installation cost is added to program capitalization.'; }
 
 function coverPage() {
   var body =
@@ -399,7 +383,7 @@ function economicsPage() {
     ]) +
     '<div class="key">As owner share count falls, schedule concentration increases. The annual fee rises because fixed aircraft costs are divided among fewer owners - not because bop Aero adds an hourly-use charge.</div>' +
     '<p class="note">Operational costs are paid as incurred. Final annual pricing for pre-owned aircraft is established from actual aircraft-specific fixed costs, insurance, JetStream pricing and the applicable aircraft refresh reserve.</p>' +
-    '<p class="note" style="margin-top:4px">' + G1FOOTNOTE + '</p>';
+    '<p class="note" style="margin-top:4px">' + g1Footnote() + '</p>';
   return page('economics', band('Program Economics Comparison'), body);
 }
 
@@ -442,7 +426,7 @@ function programPage(p) {
     ]) +
     '<h3>5. Access</h3>' +
     '<div class="key" style="margin-top:6px">' + esc(p.access) + '</div>' +
-    '<p class="note">' + (p.fixedCostFootnote ? G1FOOTNOTE : esc(p.pageNote)) + '</p>';
+    '<p class="note">' + (p.fixedCostFootnote ? g1Footnote() : esc(p.pageNote)) + '</p>';
   return page(p.anchor, band(p.title), body);
 }
 
@@ -507,12 +491,42 @@ function processPage() {
   return page('process', band('How the Ownership Process Works'), body);
 }
 
-document.getElementById('doc').innerHTML =
-  coverPage() + economicsPage() + PROGRAMS.map(programPage).join('') +
-  reservePage() + costsPage() + processPage();
-document.getElementById('barVersion').textContent = DOC.version;
-document.getElementById('pdfLink').href = DOC.pdfFile;
-document.title = '2026 SF50 Ownership Program Options — bop Aero';
+function render(costing) {
+  applyCosting(costing);
+  document.getElementById('doc').innerHTML =
+    coverPage() + economicsPage() + PROGRAMS.map(programPage).join('') +
+    reservePage() + costsPage() + processPage();
+  document.getElementById('barVersion').textContent = DOC.version;
+  document.getElementById('pdfLink').href = DOC.pdfFile;
+  document.documentElement.setAttribute('data-rendered', DOC.version);   // build-pdf.py waits for this
+}
+
+function showError(err) {
+  document.getElementById('doc').innerHTML = '<section class="page"><p><b>This document could not be displayed.</b> ' +
+    esc(err && err.message || err) + '</p></section>';
+  document.documentElement.setAttribute('data-render-error', String(err && err.message || err));
+}
+
+// ?preview — the private costing editor shows an unpublished draft here. The
+// page only accepts drafts from the editor's origin and never saves anything.
+var PREVIEW_ORIGINS = ['https://sf50-costing.compilotrc.workers.dev'];
+if (/[?&]preview(=|&|$)/.test(location.search)) {
+  document.body.classList.add('preview');
+  window.addEventListener('message', function(e) {
+    var local = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(e.origin);
+    if (PREVIEW_ORIGINS.indexOf(e.origin) < 0 && !local) return;
+    if (!e.data || e.data.type !== 'sf50-costing-preview') return;
+    var y = window.scrollY;
+    try { render(e.data.costing); window.scrollTo(0, y); e.source.postMessage({ type: 'sf50-preview-rendered', ok: true }, e.origin); }
+    catch (err) { e.source.postMessage({ type: 'sf50-preview-rendered', ok: false, error: String(err.message || err) }, e.origin); }
+  });
+  if (window.parent !== window) window.parent.postMessage({ type: 'sf50-preview-ready' }, '*');
+} else {
+  fetch('data/costing.json', { cache: 'no-cache' })
+    .then(function(r){ if (!r.ok) throw new Error('costing HTTP ' + r.status); return r.json(); })
+    .then(render)
+    .catch(showError);
+}
 </script>
 </body>
 </html>

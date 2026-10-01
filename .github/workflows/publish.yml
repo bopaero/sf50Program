@@ -1,0 +1,62 @@
+name: Publish
+
+# Every push to main (a costing publish from the editor, or a wording change)
+# rebuilds the PDF from the page and deploys the site and the PDF TOGETHER, so
+# the site can never show new figures beside an old PDF.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write     # archive versions/<version>.pdf
+  pages: write
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: true   # the newest push contains every earlier change
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PDF tools and fonts
+        run: |
+          echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils ttf-mscorefonts-installer >/dev/null
+          fc-cache -f >/dev/null
+          fc-list | grep -qi "arial" || { echo "Arial missing — layout would not match"; exit 1; }
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r index.html CNAME robots.txt assets data versions _site/
+
+      - name: Build PDF (fails the publish unless 9 pages, versioned, clean)
+        run: python3 tools/build-pdf.py --out _site
+
+      - name: Archive this version's PDF
+        run: |
+          v=$(python3 -c "import json;print(json.load(open('data/costing.json'))['version'])")
+          if [ ! -f "versions/$v.pdf" ]; then
+            cp "_site/bop-Aero-SF50-Ownership-Program-Options.pdf" "versions/$v.pdf"
+            cp "versions/$v.pdf" _site/versions/
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add "versions/$v.pdf"
+            git commit -m "Archive $v PDF [skip ci]"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4

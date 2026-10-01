@@ -1,2 +1,5 @@
 .DS_Store
 .claude/settings.local.json
+
+# Built by the publish workflow into the deployed site
+/bop-Aero-SF50-Ownership-Program-Options.pdf

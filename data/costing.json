@@ -1,0 +1,19 @@
+{
+  "version": "v2026-09-30.1",
+  "publishedAt": "2026-09-30T17:25:00-04:00",
+  "note": "Initial version, from bop_Aero_SF50_Ownership_Program_Options_9-30-26.",
+  "baseline": "G3",
+  "common": {
+    "fixedCost": 499208,
+    "jetstream": 389900,
+    "closing": 9500,
+    "taxRate": 0.07
+  },
+  "programs": [
+    { "key": "G1",  "approx": true,  "shares": 2, "acquisition": 1900000, "connectivityCost": 0,      "management": 150000, "reserve": 75000 },
+    { "key": "G2",  "approx": true,  "shares": 4, "acquisition": 2600000, "connectivityCost": 100000, "management": 180000, "reserve": 100000 },
+    { "key": "G2+", "approx": true,  "shares": 4, "acquisition": 3100000, "connectivityCost": 0,      "management": 180000, "reserve": 100000 },
+    { "key": "G3",  "approx": false, "shares": 8, "acquisition": 3685000, "connectivityCost": 0,      "management": 240000, "reserve": 351020 }
+  ],
+  "sensitivitySteps": [25000, 50000, 100000]
+}
