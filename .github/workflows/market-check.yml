@@ -4,6 +4,9 @@ name: Market check
 # published Vision Jet base price. Never changes costing — Raymond approves any
 # change in the costing editor. When the set of proposals changes, a comment on
 # the open "market-check" issue e-mails him; when none remain, the issue closes.
+#
+# Closing the issue by hand DECLINES those exact proposals: the check stays quiet
+# until the market moves to different figures, then opens a new issue.
 on:
   schedule:
     - cron: '15 11 * * *'     # ~7:15 AM Eastern
@@ -28,6 +31,41 @@ jobs:
       - name: Check the market
         run: python3 tools/market_check.py | tee summary.md
 
+      - name: Notify through the market-check issue
+        run: |
+          gh label create market-check --color FF6700 --description "SF50 market price proposals" 2>/dev/null || true
+          sig=$(python3 -c "import json;print(json.dumps(json.load(open('data/market.json'))['proposals'],sort_keys=True))")
+          count=$(python3 -c "import json;print(len(json.load(open('data/market.json'))['proposals']))")
+          issue=$(gh issue list --label market-check --state open --json number -q '.[0].number')
+          marker="<!-- proposals: $sig -->"
+          # Most recently closed issue — if it carries this exact marker, these proposals were declined
+          declined=$(gh issue list --label market-check --state closed --limit 1 --json body -q '.[0].body' | grep -cF "$marker" || true)
+          is_declined=false
+          if [ "$count" != "0" ] && [ -z "$issue" ] && [ "$declined" != "0" ]; then
+            echo "Proposals unchanged since Raymond declined them — staying quiet."
+            is_declined=true
+          elif [ "$count" != "0" ]; then
+            body="$(cat summary.md)"$'\n\n'"$marker"
+            if [ -z "$issue" ]; then
+              gh issue create --title "SF50 market prices moved — review in the costing editor" --label market-check --body "$body"
+            elif ! gh issue view "$issue" --json body -q .body | grep -qF "$marker"; then
+              gh issue edit "$issue" --body "$body"
+              gh issue comment "$issue" --body "$(cat summary.md)"
+            fi
+          elif [ -n "$issue" ]; then
+            # Clear the marker before closing, so this automatic close can never be
+            # read later as Raymond declining these proposals.
+            gh issue edit "$issue" --body "$(gh issue view "$issue" --json body -q .body | sed 's/<!-- proposals: .* -->/<!-- proposals: resolved -->/')"
+            gh issue close "$issue" --comment "No proposed changes remain — the published prices match the market. $(date -u +%Y-%m-%d)"
+          fi
+          # The editor shows declined proposals as declined instead of offering Apply
+          python3 - "$is_declined" <<'PY2'
+          import json, sys
+          m = json.load(open('data/market.json'))
+          m['declined'] = sys.argv[1] == 'true'
+          open('data/market.json', 'w').write(json.dumps(m, indent=2) + '\n')
+          PY2
+
       - name: Save the snapshot when it changed
         run: |
           # checkedAt changes every run; only commit when the substance changed
@@ -49,23 +87,4 @@ jobs:
             git pull --rebase -q && git push -q
           else
             git checkout -- data/market.json
-          fi
-
-      - name: Notify through the market-check issue
-        run: |
-          gh label create market-check --color FF6700 --description "SF50 market price proposals" 2>/dev/null || true
-          sig=$(python3 -c "import json;print(json.dumps(json.load(open('data/market.json'))['proposals'],sort_keys=True))")
-          count=$(python3 -c "import json;print(len(json.load(open('data/market.json'))['proposals']))")
-          issue=$(gh issue list --label market-check --state open --json number -q '.[0].number')
-          marker="<!-- proposals: $sig -->"
-          if [ "$count" != "0" ]; then
-            body="$(cat summary.md)"$'\n\n'"$marker"
-            if [ -z "$issue" ]; then
-              gh issue create --title "SF50 market prices moved — review in the costing editor" --label market-check --body "$body"
-            elif ! gh issue view "$issue" --json body -q .body | grep -qF "$marker"; then
-              gh issue edit "$issue" --body "$body"
-              gh issue comment "$issue" --body "$(cat summary.md)"
-            fi
-          elif [ -n "$issue" ]; then
-            gh issue close "$issue" --comment "No proposed changes remain — the published prices match the market. $(date -u +%Y-%m-%d)"
           fi
