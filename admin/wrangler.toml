@@ -11,7 +11,8 @@ globs = ["**/*.html"]
 
 [vars]
 GITHUB_REPO = "bopaero/sf50Program"
-ALLOWED_EMAILS = "raymond@bopaero.com"
+# compilotrc@mac.com = the Cloudflare account login on the Access page (Raymond, 2026-10-02)
+ALLOWED_EMAILS = "compilotrc@mac.com,raymond@bopaero.com"
 # Cloudflare Access on this workers.dev hostname (enabled 2026-10-01). Neither
 # value is secret. If either is emptied, the Worker refuses every request.
 ACCESS_TEAM_DOMAIN = "calm-field-898f.cloudflareaccess.com"
