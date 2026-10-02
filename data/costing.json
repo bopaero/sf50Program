@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-02.3",
-  "publishedAt": "2026-10-02T14:35:14.386Z",
-  "note": "Feature wording now set by status, with an optional detail (format change; no figures changed).",
+  "version": "v2026-10-02.4",
+  "publishedAt": "2026-10-02T16:23:39.263Z",
+  "note": "Testing",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -29,7 +29,7 @@
       },
       "features": {
         "connectivity": {
-          "status": "excluded",
+          "status": "depends",
           "detail": "aftermarket if capable"
         },
         "safeReturn": {
