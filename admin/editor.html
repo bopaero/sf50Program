@@ -154,9 +154,10 @@ button.small { font-size:12px; padding:5px 10px; }
   function progFields() {
     var out = PROG_FIELDS.slice(), labels = (published && published.featureLabels) || {};
     Object.keys(labels).forEach(function (k) {
-      var has = function (p) { return !!(p.features && p.features[k]); };
-      out.push(['features.' + k + '.status', labels[k] + ': status', 'status', has]);
-      out.push(['features.' + k + '.detail', labels[k] + ': detail (optional, shown after the status)', 'text', has]);
+      var f = function (p) { return p.features && p.features[k]; };
+      // Standard (factory) features are shown, not editable
+      out.push(['features.' + k + '.status', labels[k] + ': status', 'status', function (p) { return f(p) ? (f(p).standard ? 'standard' : true) : false; }]);
+      out.push(['features.' + k + '.detail', labels[k] + ': detail (optional, shown after the status)', 'text', function (p) { return !!f(p) && !f(p).standard; }]);
     });
     return out;
   }
@@ -252,6 +253,9 @@ button.small { font-size:12px; padding:5px 10px; }
         if (applies === 'computed') {
           td.className = 'computed'; td.id = 'p_' + i + '_' + f[0] + '_total';
           td.title = 'Cirrus base price + options'; td.textContent = shown('money', p.basePrice + p.options);
+        } else if (applies === 'standard') {
+          td.className = 'computed'; td.textContent = 'Standard';
+          td.title = 'Factory equipment on this aircraft. Always shown as Included; not editable here.';
         } else if (!applies) {
           td.className = 'na'; td.textContent = '—';
         } else {

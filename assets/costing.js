@@ -77,6 +77,8 @@
           var f = p.features[k] || {};
           if (!labels[k]) errors.push(where + ' feature ' + k + ' has no label in featureLabels');
           if (FEATURE_STATUS.indexOf(f.status) < 0) errors.push(where + ' feature ' + k + ' status must be ' + FEATURE_STATUS.join(', '));
+          if (f.standard !== undefined && f.standard !== true) errors.push(where + ' feature ' + k + ' standard must be true or left out');
+          if (f.standard && (f.status !== 'included' || f.detail !== undefined)) errors.push(where + ' feature ' + k + ' is standard, so it must be included with no detail');
           if (f.note !== undefined) errors.push(where + ' feature ' + k + ' has a note; the status sets the wording now, with an optional detail');
           if (f.detail !== undefined) {
             if (typeof f.detail !== 'string' || !f.detail.trim() || f.detail.length > DETAIL_MAX) errors.push(where + ' feature ' + k + ' detail must be 1-' + DETAIL_MAX + ' characters, or left out');

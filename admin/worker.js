@@ -158,10 +158,11 @@ async function publish(body, env, user) {
     note,
     baseline: current.baseline,
     common: cleanCommon(draft.common),
-    programs: draft.programs.map(cleanProgram),
+    programs: draft.programs.map((p, i) => keepStandard(cleanProgram(p), current.programs[i])),
     sensitivitySteps: current.sensitivitySteps,
     // Feature names are structural (the document and calculator lay them out); only
     // each program's status and detail are edited, so the labels carry over unchanged.
+    // So does any feature marked standard (factory equipment): it is not editable.
     ...(current.featureLabels ? { featureLabels: current.featureLabels } : {})
   };
   const problems = SF50Costing.validate(next);
@@ -255,6 +256,12 @@ function cleanCommon(c) {
   const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate']);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
+}
+// A standard feature is factory equipment: whatever the client sends, keep it as published
+function keepStandard(next, cur) {
+  const std = Object.keys((cur && cur.features) || {}).filter(k => cur.features[k].standard);
+  if (std.length) { next.features = next.features || {}; for (const k of std) next.features[k] = { ...cur.features[k] }; }
+  return next;
 }
 function cleanProgram(p) {
   const out = pick(p, ['key', 'approx', 'shares', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
