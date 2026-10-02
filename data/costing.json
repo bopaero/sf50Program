@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-02.1",
-  "publishedAt": "2026-10-02T13:57:26+00:00",
-  "note": "Feature notes per program: in-flight connectivity and Garmin Safe Return (Raymond, 2026-10-02). No figure changes.",
+  "version": "v2026-10-02.2",
+  "publishedAt": "2026-10-02T14:09:45.469Z",
+  "note": "Test throughput to website calculators.",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -29,7 +29,7 @@
       },
       "features": {
         "connectivity": {
-          "status": "depends",
+          "status": "excluded",
           "note": "Aircraft-dependent; aftermarket if capable"
         },
         "safeReturn": {
