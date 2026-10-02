@@ -42,6 +42,9 @@
     if (value < lim.min || value > lim.max) errors.push(where + ' ' + field + ' must be between ' + lim.min + ' and ' + lim.max);
   }
 
+  // Feature notes per program: included / depends on the aircraft / not included
+  var FEATURE_STATUS = ['included', 'depends', 'excluded'];
+
   // Returns a list of problems; empty means the costing can be published.
   function validate(c) {
     var errors = [];
@@ -63,6 +66,15 @@
       if (split && p.acquisition !== undefined) errors.push(where + ' has both an acquisition value and base + options');
       if (split) { checkNumber(errors, where, 'basePrice', p.basePrice); checkNumber(errors, where, 'options', p.options); }
       else checkNumber(errors, where, 'acquisition', p.acquisition);
+      if (p.features !== undefined) {
+        var labels = c.featureLabels || {};
+        Object.keys(p.features || {}).forEach(function (k) {
+          var f = p.features[k] || {};
+          if (!labels[k]) errors.push(where + ' feature ' + k + ' has no label in featureLabels');
+          if (FEATURE_STATUS.indexOf(f.status) < 0) errors.push(where + ' feature ' + k + ' status must be ' + FEATURE_STATUS.join(', '));
+          if (typeof f.note !== 'string' || !f.note.trim() || f.note.length > 140) errors.push(where + ' feature ' + k + ' needs a note of 1-140 characters');
+        });
+      }
       if (p.market !== undefined) {
         var m = p.market || {};
         if (['G1', 'G2', 'G2+', 'G3'].indexOf(m.generation) < 0) errors.push(where + ' comparables generation must be G1, G2, G2+ or G3');
@@ -105,11 +117,12 @@
     return {
       version: c.version, publishedAt: c.publishedAt, common: common,
       programs: programs, byKey: byKey, baseline: baseline,
-      sensitivitySteps: c.sensitivitySteps.slice()
+      sensitivitySteps: c.sensitivitySteps.slice(),
+      featureLabels: c.featureLabels || {}
     };
   }
 
-  var api = { validate: validate, derive: derive, LIMITS: LIMITS };
+  var api = { validate: validate, derive: derive, LIMITS: LIMITS, FEATURE_STATUS: FEATURE_STATUS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.SF50Costing = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

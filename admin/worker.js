@@ -159,7 +159,10 @@ async function publish(body, env, user) {
     baseline: current.baseline,
     common: cleanCommon(draft.common),
     programs: draft.programs.map(cleanProgram),
-    sensitivitySteps: current.sensitivitySteps
+    sensitivitySteps: current.sensitivitySteps,
+    // Feature names are structural (the document and calculator lay them out); only
+    // each program's status and note are edited, so the labels carry over unchanged.
+    ...(current.featureLabels ? { featureLabels: current.featureLabels } : {})
   };
   const problems = SF50Costing.validate(next);
   if (problems.length) return [400, { error: 'Not published: ' + problems.join('; ') }];
@@ -205,11 +208,12 @@ const LABELS = {
   acquisition: 'Aircraft acquisition value', connectivityCost: 'Connectivity installation cost',
   management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
   basePrice: 'Cirrus base price', options: 'Options & equipment',
-  market: 'Comparables', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)'
+  market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)'
 };
 function fmt(field, v) {
   if (v === undefined) return '—';
   if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
+  if (field === 'features') return Object.keys(v).map(k => k + ' ' + v[k].status + ' ("' + v[k].note + '")').join('; ');
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate') return (v * 100).toFixed(2) + '%';
   if (field === 'shares' || typeof v === 'boolean') return String(v);
@@ -228,7 +232,20 @@ function diff(a, b) {
   b.programs.forEach((p, i) => {
     const o = a.programs[i];
     const fields = new Set([...Object.keys(o), ...Object.keys(p)]);
-    for (const f of fields) if (f !== 'key' && !same(o[f], p[f])) out.push(p.key + ' ' + LABELS[f] + ': ' + fmt(f, o[f]) + ' → ' + fmt(f, p[f]));
+    for (const f of fields) {
+      if (f === 'key' || same(o[f], p[f])) continue;
+      if (f === 'features') {
+        const names = b.featureLabels || {};
+        for (const k of new Set([...Object.keys(o.features || {}), ...Object.keys(p.features || {})])) {
+          const x = (o.features || {})[k], y = (p.features || {})[k];
+          if (same(x, y)) continue;
+          const show = v => v ? v.status + ' ("' + v.note + '")' : '—';
+          out.push(p.key + ' ' + (names[k] || k) + ': ' + show(x) + ' → ' + show(y));
+        }
+        continue;
+      }
+      out.push(p.key + ' ' + LABELS[f] + ': ' + fmt(f, o[f]) + ' → ' + fmt(f, p[f]));
+    }
   });
   return out;
 }
@@ -242,6 +259,14 @@ function cleanCommon(c) {
 function cleanProgram(p) {
   const out = pick(p, ['key', 'approx', 'shares', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
   if (p && p.market) out.market = pick(p.market, ['generation', 'yearFrom', 'yearTo']);
+  if (p && p.features) {
+    out.features = {};
+    for (const k of Object.keys(p.features)) {
+      const f = pick(p.features[k], ['status', 'note']);
+      if (typeof f.note === 'string') f.note = f.note.trim();
+      out.features[k] = f;
+    }
+  }
   return out;
 }
 

@@ -1,7 +1,7 @@
 {
-  "version": "v2026-09-30.1",
-  "publishedAt": "2026-09-30T17:25:00-04:00",
-  "note": "Initial version, from bop_Aero_SF50_Ownership_Program_Options_9-30-26.",
+  "version": "v2026-10-02.1",
+  "publishedAt": "2026-10-02T13:57:26+00:00",
+  "note": "Feature notes per program: in-flight connectivity and Garmin Safe Return (Raymond, 2026-10-02). No figure changes.",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -26,6 +26,16 @@
         "generation": "G1",
         "yearFrom": 2016,
         "yearTo": 2018
+      },
+      "features": {
+        "connectivity": {
+          "status": "depends",
+          "note": "Aircraft-dependent; aftermarket if capable"
+        },
+        "safeReturn": {
+          "status": "excluded",
+          "note": "Not available"
+        }
       }
     },
     {
@@ -40,6 +50,16 @@
         "generation": "G2",
         "yearFrom": 2019,
         "yearTo": 2021
+      },
+      "features": {
+        "connectivity": {
+          "status": "included",
+          "note": "Required aftermarket"
+        },
+        "safeReturn": {
+          "status": "depends",
+          "note": "Aircraft-dependent (standard from 2020)"
+        }
       }
     },
     {
@@ -54,6 +74,16 @@
         "generation": "G2+",
         "yearFrom": 2021,
         "yearTo": 2023
+      },
+      "features": {
+        "connectivity": {
+          "status": "included",
+          "note": "Included"
+        },
+        "safeReturn": {
+          "status": "included",
+          "note": "Included"
+        }
       }
     },
     {
@@ -64,12 +94,26 @@
       "options": 835000,
       "connectivityCost": 0,
       "management": 240000,
-      "reserve": 351020
+      "reserve": 351020,
+      "features": {
+        "connectivity": {
+          "status": "included",
+          "note": "Included"
+        },
+        "safeReturn": {
+          "status": "included",
+          "note": "Included"
+        }
+      }
     }
   ],
   "sensitivitySteps": [
     25000,
     50000,
     100000
-  ]
+  ],
+  "featureLabels": {
+    "connectivity": "In-flight connectivity",
+    "safeReturn": "Garmin Safe Return emergency autoland"
+  }
 }

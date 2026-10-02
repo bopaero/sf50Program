@@ -23,7 +23,9 @@ th:first-child, td:first-child { text-align:left; font-weight:600; white-space:n
 thead th { border-top:0; font-size:12px; color:var(--muted); }
 input[type=text] { width:100%; min-width:92px; font:inherit; font-size:14px; padding:5px 6px; text-align:right; border:1px solid var(--rule); border-radius:4px; }
 input[type=text]:focus { outline:2px solid var(--orange); outline-offset:-1px; }
-input.changed { background:#fff8ec; border-color:#f0b35c; }
+input.changed, select.changed { background:#fff8ec; border-color:#f0b35c; }
+input.note { text-align:left; min-width:150px; font-size:12px; }
+td select { width:100%; min-width:120px; font:inherit; font-size:12px; padding:4px; border:1px solid var(--rule); border-radius:4px; }
 input.invalid { border-color:var(--bad); background:#fdecec; }
 .common td input { max-width:160px; }
 td.delta { font-size:11px; color:var(--muted); }
@@ -148,6 +150,16 @@ button.small { font-size:12px; padding:5px 10px; }
     ['market.yearFrom', 'Market comparables: model year from', 'year', function (p) { return !!p.market; }],
     ['market.yearTo', 'Market comparables: model year to', 'year', function (p) { return !!p.market; }]
   ];
+  var STATUS_LABELS = { included: 'Included', depends: 'Depends on the aircraft', excluded: 'Not included' };
+  function progFields() {
+    var out = PROG_FIELDS.slice(), labels = (published && published.featureLabels) || {};
+    Object.keys(labels).forEach(function (k) {
+      var has = function (p) { return !!(p.features && p.features[k]); };
+      out.push(['features.' + k + '.status', labels[k] + ': status', 'status', has]);
+      out.push(['features.' + k + '.note', labels[k] + ': note (shown in document and calculator)', 'text', has]);
+    });
+    return out;
+  }
   function getPath(o, path) { return path.split('.').reduce(function (x, k) { return x == null ? undefined : x[k]; }, o); }
   function setPath(o, path, v) { var ks = path.split('.'), last = ks.pop(); ks.reduce(function (x, k) { return x[k]; }, o)[last] = v; }
   var RESULTS = [
@@ -189,6 +201,17 @@ button.small { font-size:12px; padding:5px 10px; }
   }
 
   function input(id, kind, value, onchange) {
+    if (kind === 'status') {
+      var sel = document.createElement('select'); sel.id = id;
+      Object.keys(STATUS_LABELS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = STATUS_LABELS[k]; sel.appendChild(o); });
+      sel.value = value; sel.addEventListener('change', function () { onchange(sel.value, sel); });
+      return sel;
+    }
+    if (kind === 'text') {
+      var t = document.createElement('input'); t.type = 'text'; t.id = id; t.value = value || ''; t.maxLength = 140; t.className = 'note';
+      t.addEventListener('input', function () { onchange(t.value, t); });
+      return t;
+    }
     if (kind === 'bool') {
       var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = id; cb.checked = value;
       cb.addEventListener('change', function () { onchange(cb.checked, cb); });
@@ -220,7 +243,7 @@ button.small { font-size:12px; padding:5px 10px; }
     var head = '<tr><th></th>' + keys.map(function (k) { return '<th>' + k + '</th>'; }).join('') + '</tr>';
     $('progHead').innerHTML = head; $('resHead').innerHTML = head;
     var pr = $('progRows'); pr.innerHTML = '';
-    PROG_FIELDS.forEach(function (f) {
+    progFields().forEach(function (f) {
       var tr = document.createElement('tr');
       tr.innerHTML = '<td>' + f[1] + '</td>';
       draft.programs.forEach(function (p, i) {
@@ -231,7 +254,7 @@ button.small { font-size:12px; padding:5px 10px; }
         } else if (!applies) {
           td.className = 'na'; td.textContent = '—';
         } else {
-          td.appendChild(input('p_' + i + '_' + f[0].replace('.', '_'), f[2], getPath(p, f[0]), function (v, el) {
+          td.appendChild(input('p_' + i + '_' + f[0].replace(/\./g, '_'), f[2], getPath(p, f[0]), function (v, el) {
             setPath(p, f[0], v); el.classList.toggle('changed', v !== getPath(published.programs[i], f[0]));
             var tot = $('p_' + i + '_acquisition_total'); if (tot) tot.textContent = shown('money', p.basePrice + p.options);
             refresh();
@@ -251,7 +274,7 @@ button.small { font-size:12px; padding:5px 10px; }
       if (a !== b) out.push(f[1] + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
     });
     draft.programs.forEach(function (p, i) {
-      PROG_FIELDS.forEach(function (f) {
+      progFields().forEach(function (f) {
         if (f[3](p) !== true) return;
         var a = getPath(published.programs[i], f[0]), b = getPath(p, f[0]);
         if (a !== b) out.push(p.key + ' ' + f[1].trim() + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
@@ -259,7 +282,7 @@ button.small { font-size:12px; padding:5px 10px; }
     });
     return out;
   }
-  function fmt(kind, v) { return v === undefined ? '—' : kind === 'money' ? money(v) : kind === 'pct' ? (v * 100).toFixed(2) + '%' : String(v); }
+  function fmt(kind, v) { return v === undefined ? '—' : kind === 'money' ? money(v) : kind === 'pct' ? (v * 100).toFixed(2) + '%' : kind === 'status' ? (STATUS_LABELS[v] || v) : kind === 'text' ? '"' + v + '"' : String(v); }
 
   // ── Market check ────────────────────────────────────────────────────────────
   // Proposals are compared with what is PUBLISHED now, not with the snapshot's
@@ -327,8 +350,8 @@ button.small { font-size:12px; padding:5px 10px; }
       });
       build(); refresh();
       // build() recreates inputs; re-mark what differs from published
-      draft.programs.forEach(function (p, i) { PROG_FIELDS.forEach(function (f) {
-        var el = $('p_' + i + '_' + f[0].replace('.', '_'));
+      draft.programs.forEach(function (p, i) { progFields().forEach(function (f) {
+        var el = $('p_' + i + '_' + f[0].replace(/\./g, '_'));
         if (el && f[3](p) === true) el.classList.toggle('changed', getPath(p, f[0]) !== getPath(published.programs[i], f[0]));
       }); });
       if (!$('note').value.trim()) $('note').value = 'Market update: ' + notes.join('; ');

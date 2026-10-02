@@ -219,8 +219,7 @@ var PDF_FILE = 'bop-Aero-SF50-Ownership-Program-Options.pdf';
 var PROGRAM_TEXT = {
   'G1': { anchor: 'g1', title: 'G1 - Two-Share Near-Exclusive Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh', fixedCostFootnote: true,
-    connectivity: { glance: 'Aircraft-dependent; aftermarket if capable',
-                    comparison: 'Aircraft-dependent; aftermarket if capable',
+    connectivity: { comparison: 'Aircraft-dependent; aftermarket if capable',
                     installation: 'Aircraft-dependent; aftermarket if capable',
                     allowance: '$0 base assumption' },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
@@ -228,7 +227,7 @@ var PROGRAM_TEXT = {
 
   'G2': { anchor: 'g2', title: 'G2 - Four-Share High-Access Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
-    connectivity: { glance: 'Required aftermarket', comparison: null /* shows the cost */,
+    connectivity: { comparison: null /* shows the cost */,
                     installation: 'Required - aftermarket', allowance: null /* shows the cost */ },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
@@ -236,7 +235,7 @@ var PROGRAM_TEXT = {
 
   'G2+': { anchor: 'g2plus', title: 'G2+ - Four-Share Later-Generation Pre-Owned Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
-    connectivity: { glance: 'Included', comparison: 'Included',
+    connectivity: { comparison: 'Included',
                     installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
@@ -244,7 +243,7 @@ var PROGRAM_TEXT = {
 
   'G3': { anchor: 'g3', title: 'G3 - New Aircraft Program', isNew: true,
     reserveName: 'Future Value Reserve', reservePurpose: 'New-to-new replacement',
-    connectivity: { glance: 'Included', comparison: 'Included',
+    connectivity: { comparison: 'Included',
                     installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream at acquisition', closingLabel: 'Acquisition / closing / program setup',
     access: 'Eight owner shares. The G3 establishes the 1.0x scheduling baseline and provides the broadest distribution of fixed program costs.',
@@ -252,7 +251,7 @@ var PROGRAM_TEXT = {
 };
 
 // Set from the costing by applyCosting(), then read by every page builder
-var DOC, COMMON, PROGRAMS, BASELINE, SENSITIVITY_STEPS, FEE_LADDER;
+var DOC, COMMON, PROGRAMS, BASELINE, SENSITIVITY_STEPS, FEE_LADDER, FEATURE_LABELS;
 
 function applyCosting(costing) {
   var problems = SF50Costing.validate(costing);
@@ -263,6 +262,7 @@ function applyCosting(costing) {
   DOC = { version: d.version, pdfFile: PDF_FILE };
   COMMON = d.common;
   SENSITIVITY_STEPS = d.sensitivitySteps;
+  FEATURE_LABELS = d.featureLabels;
   PROGRAMS = d.programs.map(function(p) {
     var t = PROGRAM_TEXT[p.key];
     for (var k in t) p[k] = t[k];
@@ -292,6 +292,8 @@ function conc(p, baselineWord) {
 }
 function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
+// Feature notes live in the costing (edited in the costing editor), like every figure
+function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.note) : '—'; }
 
 // ══════════════════════════════════════════════════════════════════════════
 //  RENDERING
@@ -339,7 +341,8 @@ function coverPage() {
       ['Illustrative capital / share',function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }],
       ['Annual Program Fee / share',  function(p){ return p.approx ? tilde(p, compact(p.annualFee)) : full(p.annualFee); }],
       ['Relative schedule concentration', function(p){ return conc(p); }],
-      ['Connectivity',                function(p){ return esc(p.connectivity.glance); }],
+      ['Connectivity',                function(p){ return featureNote(p, 'connectivity'); }],
+      ['Garmin Safe Return',          function(p){ return featureNote(p, 'safeReturn'); }],
       ['bop Aero hourly-use fee',     function(){ return '$0'; }]
     ]) +
     '<div class="key">You own the aircraft. bop Aero manages it. There is no bop Aero occupied-hour fee to use an aircraft you already own.</div>' +
@@ -427,7 +430,8 @@ function programPage(p) {
       ['Airport / handling costs', 'Owner actual cost'],
       ['Artificial occupied-hour markup', 'None']
     ]) +
-    '<h3>5. Access</h3>' +
+    '<h3>5. Features</h3>' + kv(Object.keys(FEATURE_LABELS).map(function(k){ return [esc(FEATURE_LABELS[k]), featureNote(p, k)]; })) +
+    '<h3>6. Access</h3>' +
     '<div class="key" style="margin-top:6px">' + esc(p.access) + '</div>' +
     '<p class="note">' + (p.fixedCostFootnote ? g1Footnote() : esc(p.pageNote)) + '</p>';
   return page(p.anchor, band(p.title), body);
