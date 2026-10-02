@@ -42,8 +42,13 @@
     if (value < lim.min || value > lim.max) errors.push(where + ' ' + field + ' must be between ' + lim.min + ' and ' + lim.max);
   }
 
-  // Feature notes per program: included / depends on the aircraft / not included
-  var FEATURE_STATUS = ['included', 'depends', 'excluded'];
+  // Features per program. The status alone sets the wording shown everywhere, so
+  // the words can never contradict the mark; an optional short detail follows it
+  // for what only applies to that program ("standard from 2020").
+  var FEATURE_TEXT = { included: 'Included', depends: 'Depends on aircraft', excluded: 'Not included' };
+  var FEATURE_STATUS = Object.keys(FEATURE_TEXT);
+  var DETAIL_MAX = 80;
+  function featureText(f) { return f ? FEATURE_TEXT[f.status] + (f.detail ? ' \u00b7 ' + f.detail : '') : ''; }
 
   // Returns a list of problems; empty means the costing can be published.
   function validate(c) {
@@ -72,7 +77,12 @@
           var f = p.features[k] || {};
           if (!labels[k]) errors.push(where + ' feature ' + k + ' has no label in featureLabels');
           if (FEATURE_STATUS.indexOf(f.status) < 0) errors.push(where + ' feature ' + k + ' status must be ' + FEATURE_STATUS.join(', '));
-          if (typeof f.note !== 'string' || !f.note.trim() || f.note.length > 140) errors.push(where + ' feature ' + k + ' needs a note of 1-140 characters');
+          if (f.note !== undefined) errors.push(where + ' feature ' + k + ' has a note; the status sets the wording now, with an optional detail');
+          if (f.detail !== undefined) {
+            if (typeof f.detail !== 'string' || !f.detail.trim() || f.detail.length > DETAIL_MAX) errors.push(where + ' feature ' + k + ' detail must be 1-' + DETAIL_MAX + ' characters, or left out');
+            else if (FEATURE_STATUS.some(function (s) { return FEATURE_TEXT[s].toLowerCase() === f.detail.trim().toLowerCase(); }))
+              errors.push(where + ' feature ' + k + ' detail only repeats a status; leave it blank');
+          }
         });
       }
       if (p.market !== undefined) {
@@ -108,6 +118,14 @@
       p.annualTotal    = common.fixedCost + p.management + p.reserve;
       p.annualFee      = p.annualTotal / p.shares;
       p.reserve5       = p.reserve * 5;
+      if (src.features) {
+        p.features = {};
+        for (var fk in src.features) {
+          var sf = src.features[fk];
+          p.features[fk] = { status: sf.status, text: featureText(sf) };
+          if (sf.detail) p.features[fk].detail = sf.detail;
+        }
+      }
       return p;
     });
     var byKey = {};
@@ -122,7 +140,8 @@
     };
   }
 
-  var api = { validate: validate, derive: derive, LIMITS: LIMITS, FEATURE_STATUS: FEATURE_STATUS };
+  var api = { validate: validate, derive: derive, featureText: featureText, LIMITS: LIMITS,
+              FEATURE_STATUS: FEATURE_STATUS, FEATURE_TEXT: FEATURE_TEXT, DETAIL_MAX: DETAIL_MAX };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (root) root.SF50Costing = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);

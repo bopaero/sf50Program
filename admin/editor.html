@@ -150,13 +150,13 @@ button.small { font-size:12px; padding:5px 10px; }
     ['market.yearFrom', 'Market comparables: model year from', 'year', function (p) { return !!p.market; }],
     ['market.yearTo', 'Market comparables: model year to', 'year', function (p) { return !!p.market; }]
   ];
-  var STATUS_LABELS = { included: 'Included', depends: 'Depends on the aircraft', excluded: 'Not included' };
+  var STATUS_LABELS = SF50Costing.FEATURE_TEXT;     // the same wording the document and calculator show
   function progFields() {
     var out = PROG_FIELDS.slice(), labels = (published && published.featureLabels) || {};
     Object.keys(labels).forEach(function (k) {
       var has = function (p) { return !!(p.features && p.features[k]); };
       out.push(['features.' + k + '.status', labels[k] + ': status', 'status', has]);
-      out.push(['features.' + k + '.note', labels[k] + ': note (shown in document and calculator)', 'text', has]);
+      out.push(['features.' + k + '.detail', labels[k] + ': detail (optional, shown after the status)', 'text', has]);
     });
     return out;
   }
@@ -208,8 +208,9 @@ button.small { font-size:12px; padding:5px 10px; }
       return sel;
     }
     if (kind === 'text') {
-      var t = document.createElement('input'); t.type = 'text'; t.id = id; t.value = value || ''; t.maxLength = 140; t.className = 'note';
-      t.addEventListener('input', function () { onchange(t.value, t); });
+      var t = document.createElement('input'); t.type = 'text'; t.id = id; t.value = value || ''; t.maxLength = SF50Costing.DETAIL_MAX; t.className = 'note';
+      t.placeholder = 'none';
+      t.addEventListener('input', function () { onchange(t.value.trim() ? t.value : undefined, t); });   // blank = no detail
       return t;
     }
     if (kind === 'bool') {

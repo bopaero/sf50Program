@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-02.2",
-  "publishedAt": "2026-10-02T14:09:45.469Z",
-  "note": "Test throughput to website calculators.",
+  "version": "v2026-10-02.3",
+  "publishedAt": "2026-10-02T14:35:14.386Z",
+  "note": "Feature wording now set by status, with an optional detail (format change; no figures changed).",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -30,11 +30,10 @@
       "features": {
         "connectivity": {
           "status": "excluded",
-          "note": "Aircraft-dependent; aftermarket if capable"
+          "detail": "aftermarket if capable"
         },
         "safeReturn": {
-          "status": "excluded",
-          "note": "Not available"
+          "status": "excluded"
         }
       }
     },
@@ -54,11 +53,11 @@
       "features": {
         "connectivity": {
           "status": "included",
-          "note": "Required aftermarket"
+          "detail": "aftermarket install, cost in program"
         },
         "safeReturn": {
           "status": "depends",
-          "note": "Aircraft-dependent (standard from 2020)"
+          "detail": "standard from 2020"
         }
       }
     },
@@ -77,12 +76,10 @@
       },
       "features": {
         "connectivity": {
-          "status": "included",
-          "note": "Included"
+          "status": "included"
         },
         "safeReturn": {
-          "status": "included",
-          "note": "Included"
+          "status": "included"
         }
       }
     },
@@ -97,12 +94,10 @@
       "reserve": 351020,
       "features": {
         "connectivity": {
-          "status": "included",
-          "note": "Included"
+          "status": "included"
         },
         "safeReturn": {
-          "status": "included",
-          "note": "Included"
+          "status": "included"
         }
       }
     }

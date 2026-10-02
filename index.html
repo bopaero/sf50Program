@@ -293,7 +293,7 @@ function conc(p, baselineWord) {
 function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
 // Feature notes live in the costing (edited in the costing editor), like every figure
-function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.note) : '—'; }
+function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.text) : '—'; }
 
 // ══════════════════════════════════════════════════════════════════════════
 //  RENDERING

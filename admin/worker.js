@@ -161,7 +161,7 @@ async function publish(body, env, user) {
     programs: draft.programs.map(cleanProgram),
     sensitivitySteps: current.sensitivitySteps,
     // Feature names are structural (the document and calculator lay them out); only
-    // each program's status and note are edited, so the labels carry over unchanged.
+    // each program's status and detail are edited, so the labels carry over unchanged.
     ...(current.featureLabels ? { featureLabels: current.featureLabels } : {})
   };
   const problems = SF50Costing.validate(next);
@@ -213,7 +213,7 @@ const LABELS = {
 function fmt(field, v) {
   if (v === undefined) return '—';
   if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
-  if (field === 'features') return Object.keys(v).map(k => k + ' ' + v[k].status + ' ("' + v[k].note + '")').join('; ');
+  if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate') return (v * 100).toFixed(2) + '%';
   if (field === 'shares' || typeof v === 'boolean') return String(v);
@@ -239,7 +239,7 @@ function diff(a, b) {
         for (const k of new Set([...Object.keys(o.features || {}), ...Object.keys(p.features || {})])) {
           const x = (o.features || {})[k], y = (p.features || {})[k];
           if (same(x, y)) continue;
-          const show = v => v ? v.status + ' ("' + v.note + '")' : '—';
+          const show = v => v ? '"' + SF50Costing.featureText(v) + '"' : '—';
           out.push(p.key + ' ' + (names[k] || k) + ': ' + show(x) + ' → ' + show(y));
         }
         continue;
@@ -262,8 +262,9 @@ function cleanProgram(p) {
   if (p && p.features) {
     out.features = {};
     for (const k of Object.keys(p.features)) {
-      const f = pick(p.features[k], ['status', 'note']);
-      if (typeof f.note === 'string') f.note = f.note.trim();
+      const f = pick(p.features[k], ['status', 'detail']);
+      if (typeof f.detail === 'string') f.detail = f.detail.trim();
+      if (f.detail === '') delete f.detail;          // blank detail = status wording alone
       out.features[k] = f;
     }
   }
