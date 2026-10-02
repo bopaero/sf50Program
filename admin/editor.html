@@ -47,6 +47,15 @@ button:disabled { opacity:.45; cursor:default; }
 .preview .bar { padding:8px 12px; font-size:12px; color:var(--muted); border-bottom:1px solid var(--rule); background:var(--warn-bg); }
 .preview iframe { flex:1; width:100%; border:0; }
 .muted { color:var(--muted); font-size:12px; }
+td.na { color:var(--muted); text-align:center; }
+td.computed { color:var(--muted); }
+.mkt td.prop { font-weight:700; color:var(--warn); }
+.mkt td.same { color:var(--ok); }
+.mkt details { font-size:12px; margin-top:2px; }
+.mkt details table { font-size:12px; margin-top:4px; }
+.mkt details td { padding:3px 5px; }
+button.small { font-size:12px; padding:5px 10px; }
+.chip { display:inline-block; font-size:11px; padding:2px 7px; border-radius:10px; background:#fdecec; color:var(--bad); font-weight:700; }
 @media (max-width: 1000px) {
   .wrap { grid-template-columns: 1fr; }
   .preview { position:static; height:80vh; }
@@ -62,7 +71,12 @@ button:disabled { opacity:.45; cursor:default; }
 
 <div class="wrap">
   <div>
-    <section class="panel">
+    <section class="panel" id="marketPanel">
+      <h2>Market check <small id="marketWhen"></small></h2>
+      <div id="marketBody" class="muted">Loading…</div>
+    </section>
+
+    <section class="panel" style="margin-top:16px">
       <h2>Shared planning values <small>apply to every program</small></h2>
       <div class="tw"><table class="common"><tbody id="commonRows"></tbody></table></div>
     </section>
@@ -119,14 +133,22 @@ button:disabled { opacity:.45; cursor:default; }
     ['closing', 'Acquisition / closing / setup', 'money'],
     ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct']
   ];
+  // [path, label, kind, applies(program)] — applies may return 'computed' for a read-only total
+  function isNew(p) { return p.basePrice !== undefined; }
   var PROG_FIELDS = [
-    ['shares', 'Shares available for purchase', 'int'],
-    ['acquisition', 'Aircraft acquisition value', 'money'],
-    ['connectivityCost', 'Connectivity installation cost', 'money'],
-    ['management', 'bop Aero management (annual)', 'money'],
-    ['reserve', 'Refresh / Future Value Reserve (annual)', 'money'],
-    ['approx', 'Approximate (pre-owned planning values)', 'bool']
+    ['shares', 'Shares available for purchase', 'int', function () { return true; }],
+    ['acquisition', 'Aircraft acquisition value', 'money', function (p) { return isNew(p) ? 'computed' : true; }],
+    ['basePrice', '  New: Cirrus base price (tracked)', 'money', isNew],
+    ['options', '  New: options & equipment', 'money', isNew],
+    ['connectivityCost', 'Connectivity installation cost', 'money', function () { return true; }],
+    ['management', 'bop Aero management (annual)', 'money', function () { return true; }],
+    ['reserve', 'Refresh / Future Value Reserve (annual)', 'money', function () { return true; }],
+    ['approx', 'Approximate (pre-owned planning values)', 'bool', function () { return true; }],
+    ['market.yearFrom', 'Market comparables: model year from', 'year', function (p) { return !!p.market; }],
+    ['market.yearTo', 'Market comparables: model year to', 'year', function (p) { return !!p.market; }]
   ];
+  function getPath(o, path) { return path.split('.').reduce(function (x, k) { return x == null ? undefined : x[k]; }, o); }
+  function setPath(o, path, v) { var ks = path.split('.'), last = ks.pop(); ks.reduce(function (x, k) { return x[k]; }, o)[last] = v; }
   var RESULTS = [
     ['capitalization', 'Total program capitalization'],
     ['capPerShare', 'Capital per available share', true],
@@ -141,6 +163,7 @@ button:disabled { opacity:.45; cursor:default; }
 
   function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
   function shown(kind, v) {
+    if (v === undefined) return '';
     if (kind === 'money') return Math.round(v).toLocaleString('en-US');
     if (kind === 'pct') return String(+(v * 100).toFixed(3));
     return String(v);
@@ -159,7 +182,7 @@ button:disabled { opacity:.45; cursor:default; }
       .then(function (j) {
         published = j.costing; sha = j.sha; draft = clone(published);
         $('pubVersion').textContent = 'Published: ' + published.version;
-        build(); refresh();
+        build(); refresh(); loadMarket();
       })
       .catch(function (e) { setStatus('Could not load costing: ' + e.message, 'bad'); });
   }
@@ -171,7 +194,7 @@ button:disabled { opacity:.45; cursor:default; }
       return cb;
     }
     var el = document.createElement('input');
-    el.type = 'text'; el.id = id; el.inputMode = kind === 'int' ? 'numeric' : 'decimal'; el.autocomplete = 'off';
+    el.type = 'text'; el.id = id; el.inputMode = (kind === 'int' || kind === 'year') ? 'numeric' : 'decimal'; el.autocomplete = 'off';
     el.value = shown(kind, value);
     el.addEventListener('input', function () {
       var v = parse(kind, el.value);
@@ -200,11 +223,20 @@ button:disabled { opacity:.45; cursor:default; }
       var tr = document.createElement('tr');
       tr.innerHTML = '<td>' + f[1] + '</td>';
       draft.programs.forEach(function (p, i) {
-        var td = document.createElement('td');
-        td.appendChild(input('p_' + i + '_' + f[0], f[2], p[f[0]], function (v, el) {
-          p[f[0]] = v; el.classList.toggle('changed', v !== published.programs[i][f[0]]); refresh();
-        }));
-        if (f[2] === 'bool') td.style.textAlign = 'center';
+        var td = document.createElement('td'), applies = f[3](p);
+        if (applies === 'computed') {
+          td.className = 'computed'; td.id = 'p_' + i + '_' + f[0] + '_total';
+          td.title = 'Cirrus base price + options'; td.textContent = shown('money', p.basePrice + p.options);
+        } else if (!applies) {
+          td.className = 'na'; td.textContent = '—';
+        } else {
+          td.appendChild(input('p_' + i + '_' + f[0].replace('.', '_'), f[2], getPath(p, f[0]), function (v, el) {
+            setPath(p, f[0], v); el.classList.toggle('changed', v !== getPath(published.programs[i], f[0]));
+            var tot = $('p_' + i + '_acquisition_total'); if (tot) tot.textContent = shown('money', p.basePrice + p.options);
+            refresh();
+          }));
+          if (f[2] === 'bool') td.style.textAlign = 'center';
+        }
         tr.appendChild(td);
       });
       pr.appendChild(tr);
@@ -219,13 +251,87 @@ button:disabled { opacity:.45; cursor:default; }
     });
     draft.programs.forEach(function (p, i) {
       PROG_FIELDS.forEach(function (f) {
-        var a = published.programs[i][f[0]], b = p[f[0]];
-        if (a !== b) out.push(p.key + ' ' + f[1] + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
+        if (f[3](p) !== true) return;
+        var a = getPath(published.programs[i], f[0]), b = getPath(p, f[0]);
+        if (a !== b) out.push(p.key + ' ' + f[1].trim() + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
       });
     });
     return out;
   }
-  function fmt(kind, v) { return kind === 'money' ? money(v) : kind === 'pct' ? (v * 100).toFixed(2) + '%' : String(v); }
+  function fmt(kind, v) { return v === undefined ? '—' : kind === 'money' ? money(v) : kind === 'pct' ? (v * 100).toFixed(2) + '%' : String(v); }
+
+  // ── Market check ────────────────────────────────────────────────────────────
+  // Proposals are compared with what is PUBLISHED now, not with the snapshot's
+  // own "from", so a snapshot taken before a publish can't propose a stale change.
+  var marketData = null;
+  function loadMarket() {
+    fetch('/api/market', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      marketData = j; renderMarket();
+    }).catch(function (e) { $('marketBody').textContent = 'Could not load the market check: ' + e.message; });
+  }
+  function marketProposals() {
+    var m = marketData && marketData.market, out = [];
+    if (!m || !published) return out;
+    published.programs.forEach(function (p) {
+      var e = m.programs[p.key]; if (!e) return;
+      if (e.cirrusBase !== undefined && e.cirrusBase !== p.basePrice) out.push({ key: p.key, path: 'basePrice', from: p.basePrice, to: e.cirrusBase, why: 'Cirrus published base price' });
+      if (e.proposed !== undefined && p.market && e.proposed !== p.acquisition)
+        out.push({ key: p.key, path: 'acquisition', from: p.acquisition, to: e.proposed,
+                   why: 'median of ' + e.count + ' Cirrus-listed ' + e.years[0] + '–' + e.years[1] + ' ' + e.generation + (e.count === 1 ? '' : 's') });
+    });
+    return out;
+  }
+  function renderMarket() {
+    var j = marketData, m = j && j.market, body = $('marketBody');
+    var run = j && j.lastRun;
+    $('marketWhen').innerHTML = run ? 'last checked ' + new Date(run.at).toLocaleString() +
+      (run.status === 'completed' && run.conclusion !== 'success' ? ' <span class="chip">last check failed</span>' : '') : '';
+    if (!m) { body.textContent = 'No market check has run yet. It runs daily at about 7:15 AM Eastern.'; return; }
+    var props = marketProposals(), h = '<div class="tw"><table class="mkt"><thead><tr><th></th><th>Published</th><th>Market</th><th>Proposed</th></tr></thead><tbody>';
+    published.programs.forEach(function (p) {
+      var e = m.programs[p.key]; if (!e) return;
+      if (e.cirrusBase !== undefined) {
+        var moved = e.cirrusBase !== p.basePrice;
+        h += '<tr><td>' + p.key + ' new — Cirrus base price<div class="muted">from the Cirrus price list</div></td><td>' + money(p.basePrice) + '</td><td>' + money(e.cirrusBase) +
+             '</td><td class="' + (moved ? 'prop' : 'same') + '">' + (moved ? money(e.cirrusBase) : 'matches') + '</td></tr>';
+        return;
+      }
+      var list = (e.comparables || []).map(function (c) {
+        return '<tr><td>' + c.year + '</td><td><a href="' + c.link + '" target="_blank" rel="noopener">' + c.registration + '</a></td><td>' +
+          (c.hours != null ? c.hours.toLocaleString() + ' hrs' : '') + '</td><td>' + money(c.price) + '</td><td class="muted">' + c.modified + '</td></tr>';
+      }).join('');
+      var moved = e.proposed !== undefined && e.proposed !== p.acquisition;
+      h += '<tr><td>' + p.key + ' — ' + e.generation + ' ' + e.years[0] + '–' + e.years[1] +
+           '<details><summary>' + e.count + ' comparable' + (e.count === 1 ? '' : 's') + '</summary>' +
+           (list ? '<table><tbody>' + list + '</tbody></table>' : '<div class="muted">None available — adjust the model years below if this persists.</div>') + '</details></td>' +
+           '<td>' + money(p.acquisition) + '</td><td>' + (e.median !== undefined ? money(e.median) : '—') + '</td>' +
+           '<td class="' + (moved ? 'prop' : 'same') + '">' + (e.proposed === undefined ? 'no comparables' : moved ? money(e.proposed) : 'matches') + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+    var ex = m.excluded ? Object.keys(m.excluded).filter(function (k) { return m.excluded[k]; }).map(function (k) { return m.excluded[k] + ' ' + k; }).join(', ') : '';
+    h += '<p class="muted">Median asking price of available listings updated in the last ' + m.maxListingAgeDays + ' days, rounded to ' + money(m.roundTo) +
+         '. From ' + m.visionJetListings + ' Vision Jet listings on cirrusaircraft.com' + (ex ? ' (excluded: ' + ex + ')' : '') + '. Asking prices, not sale prices.</p>';
+    if (props.length) h += '<div class="row"><button class="primary small" id="applyMarket">Apply ' + props.length + ' proposed change' + (props.length === 1 ? '' : 's') + ' to the editor</button>' +
+                           '<span class="muted">Fills the figures in below. Nothing is published until you publish.</span></div>';
+    body.innerHTML = h;
+    var btn = $('applyMarket');
+    if (btn) btn.addEventListener('click', function () {
+      var notes = [];
+      props.forEach(function (x) {
+        var p = draft.programs.filter(function (q) { return q.key === x.key; })[0];
+        setPath(p, x.path, x.to);
+        notes.push(x.key + ' ' + (x.path === 'basePrice' ? 'base price' : 'acquisition') + ' ' + money(x.from) + ' → ' + money(x.to) + ' (' + x.why + ')');
+      });
+      build(); refresh();
+      // build() recreates inputs; re-mark what differs from published
+      draft.programs.forEach(function (p, i) { PROG_FIELDS.forEach(function (f) {
+        var el = $('p_' + i + '_' + f[0].replace('.', '_'));
+        if (el && f[3](p) === true) el.classList.toggle('changed', getPath(p, f[0]) !== getPath(published.programs[i], f[0]));
+      }); });
+      if (!$('note').value.trim()) $('note').value = 'Market update: ' + notes.join('; ');
+      setStatus('Market figures applied below — check the preview, then Review & publish.', '');
+    });
+  }
 
   function refresh() {
     var candidate = clone(draft);

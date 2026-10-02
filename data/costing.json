@@ -7,13 +7,69 @@
     "fixedCost": 499208,
     "jetstream": 389900,
     "closing": 9500,
-    "taxRate": 0.07
+    "taxRate": 0.07,
+    "market": {
+      "roundTo": 50000,
+      "maxListingAgeDays": 90
+    }
   },
   "programs": [
-    { "key": "G1",  "approx": true,  "shares": 2, "acquisition": 1900000, "connectivityCost": 0,      "management": 150000, "reserve": 75000 },
-    { "key": "G2",  "approx": true,  "shares": 4, "acquisition": 2600000, "connectivityCost": 100000, "management": 180000, "reserve": 100000 },
-    { "key": "G2+", "approx": true,  "shares": 4, "acquisition": 3100000, "connectivityCost": 0,      "management": 180000, "reserve": 100000 },
-    { "key": "G3",  "approx": false, "shares": 8, "acquisition": 3685000, "connectivityCost": 0,      "management": 240000, "reserve": 351020 }
+    {
+      "key": "G1",
+      "approx": true,
+      "shares": 2,
+      "acquisition": 1900000,
+      "connectivityCost": 0,
+      "management": 150000,
+      "reserve": 75000,
+      "market": {
+        "generation": "G1",
+        "yearFrom": 2016,
+        "yearTo": 2018
+      }
+    },
+    {
+      "key": "G2",
+      "approx": true,
+      "shares": 4,
+      "acquisition": 2600000,
+      "connectivityCost": 100000,
+      "management": 180000,
+      "reserve": 100000,
+      "market": {
+        "generation": "G2",
+        "yearFrom": 2019,
+        "yearTo": 2021
+      }
+    },
+    {
+      "key": "G2+",
+      "approx": true,
+      "shares": 4,
+      "acquisition": 3100000,
+      "connectivityCost": 0,
+      "management": 180000,
+      "reserve": 100000,
+      "market": {
+        "generation": "G2+",
+        "yearFrom": 2021,
+        "yearTo": 2023
+      }
+    },
+    {
+      "key": "G3",
+      "approx": false,
+      "shares": 8,
+      "basePrice": 2850000,
+      "options": 835000,
+      "connectivityCost": 0,
+      "management": 240000,
+      "reserve": 351020
+    }
   ],
-  "sensitivitySteps": [25000, 50000, 100000]
+  "sensitivitySteps": [
+    25000,
+    50000,
+    100000
+  ]
 }

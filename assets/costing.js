@@ -17,6 +17,12 @@
   var LIMITS = {
     shares:           { min: 1,    max: 20,     integer: true },
     acquisition:      { min: 1e5,  max: 2e7 },
+    basePrice:        { min: 5e5,  max: 2e7 },     // new aircraft: Cirrus published base price
+    options:          { min: 0,    max: 1e7 },     // new aircraft: options & equipment
+    yearFrom:         { min: 2014, max: 2040, integer: true },
+    yearTo:           { min: 2014, max: 2040, integer: true },
+    roundTo:          { min: 1000, max: 500000, integer: true },
+    maxListingAgeDays:{ min: 7,    max: 365, integer: true },
     connectivityCost: { min: 0,    max: 1e6 },
     management:       { min: 0,    max: 2e6 },
     reserve:          { min: 0,    max: 5e6 },
@@ -51,9 +57,24 @@
       if (keys[p.key]) errors.push('duplicate program ' + p.key);
       keys[p.key] = true;
       if (typeof p.approx !== 'boolean') errors.push(where + ' approx must be true or false');
-      ['shares', 'acquisition', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
+      ['shares', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
+      // Price is either one acquisition value (pre-owned) or base + options (new)
+      var split = p.basePrice !== undefined || p.options !== undefined;
+      if (split && p.acquisition !== undefined) errors.push(where + ' has both an acquisition value and base + options');
+      if (split) { checkNumber(errors, where, 'basePrice', p.basePrice); checkNumber(errors, where, 'options', p.options); }
+      else checkNumber(errors, where, 'acquisition', p.acquisition);
+      if (p.market !== undefined) {
+        var m = p.market || {};
+        if (['G1', 'G2', 'G2+', 'G3'].indexOf(m.generation) < 0) errors.push(where + ' comparables generation must be G1, G2, G2+ or G3');
+        checkNumber(errors, where, 'yearFrom', m.yearFrom); checkNumber(errors, where, 'yearTo', m.yearTo);
+        if (m.yearFrom > m.yearTo) errors.push(where + ' comparables years run backwards');
+      }
     });
     if (!keys[c.baseline]) errors.push('baseline must name one of the programs');
+    if (common.market !== undefined) {
+      checkNumber(errors, 'common', 'roundTo', (common.market || {}).roundTo);
+      checkNumber(errors, 'common', 'maxListingAgeDays', (common.market || {}).maxListingAgeDays);
+    }
     if (!Array.isArray(c.sensitivitySteps) || !c.sensitivitySteps.every(function (n) { return typeof n === 'number' && n > 0; }))
       errors.push('sensitivitySteps must be positive numbers');
     return errors;
@@ -65,6 +86,7 @@
     var programs = c.programs.map(function (src) {
       var p = {};
       for (var k in src) p[k] = src[k];
+      if (p.basePrice !== undefined) p.acquisition = p.basePrice + p.options;   // new aircraft
       p.interests      = p.shares + 1;                 // one interest retained by bop Aero
       p.equity         = 1 / p.interests;
       p.allocation     = 1 / p.shares;

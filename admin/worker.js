@@ -43,6 +43,9 @@ export default {
         if (request.headers.get('Origin') !== url.origin) return json(403, { error: 'cross-origin request refused' });
         return json(...(await publish(await request.json(), env, user)));
       }
+      if (request.method === 'GET' && url.pathname === '/api/market') {
+        return json(200, await market(env));
+      }
       if (request.method === 'GET' && url.pathname === '/api/status') {
         return json(200, await status(url.searchParams.get('commit'), env));
       }
@@ -113,6 +116,20 @@ async function gh(env, path, init = {}) {
   return r;
 }
 
+// Latest market check (data/market.json, written by the Market check workflow)
+// and when that workflow last ran — it only commits when the market changed.
+async function market(env) {
+  const out = { market: null, lastRun: null };
+  const r = await gh(env, '/contents/data/market.json?ref=main');
+  if (r.ok) out.market = JSON.parse(decodeBase64Utf8((await r.json()).content));
+  const runs = await gh(env, '/actions/workflows/market-check.yml/runs?per_page=1');
+  if (runs.ok) {
+    const run = (await runs.json()).workflow_runs[0];
+    if (run) out.lastRun = { at: run.run_started_at || run.created_at, status: run.status, conclusion: run.conclusion, url: run.html_url };
+  }
+  return out;
+}
+
 async function readCosting(env) {
   const r = await gh(env, '/contents/' + COSTING_PATH + '?ref=main');
   if (!r.ok) throw new Error('GitHub read failed: HTTP ' + r.status);
@@ -140,8 +157,8 @@ async function publish(body, env, user) {
     publishedAt: new Date().toISOString(),
     note,
     baseline: current.baseline,
-    common: pick(draft.common, ['fixedCost', 'jetstream', 'closing', 'taxRate']),
-    programs: draft.programs.map(p => pick(p, ['key', 'approx', 'shares', 'acquisition', 'connectivityCost', 'management', 'reserve'])),
+    common: cleanCommon(draft.common),
+    programs: draft.programs.map(cleanProgram),
     sensitivitySteps: current.sensitivitySteps
   };
   const problems = SF50Costing.validate(next);
@@ -186,23 +203,47 @@ const LABELS = {
   fixedCost: 'Aircraft fixed-cost reference', jetstream: 'JetStream at acquisition', closing: 'Acquisition / closing',
   taxRate: 'Tax rate', approx: 'Approximate (pre-owned planning values)', shares: 'Shares available',
   acquisition: 'Aircraft acquisition value', connectivityCost: 'Connectivity installation cost',
-  management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve'
+  management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
+  basePrice: 'Cirrus base price', options: 'Options & equipment',
+  market: 'Comparables', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)'
 };
 function fmt(field, v) {
+  if (v === undefined) return '—';
+  if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
+  if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate') return (v * 100).toFixed(2) + '%';
   if (field === 'shares' || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
+function same(x, y) { return JSON.stringify(x) === JSON.stringify(y); }
 function diff(a, b) {
   const out = [];
-  for (const f of Object.keys(b.common)) if (a.common[f] !== b.common[f]) out.push(LABELS[f] + ': ' + fmt(f, a.common[f]) + ' → ' + fmt(f, b.common[f]));
+  const cm = Object.assign({}, a.common.market, b.common.market);
+  for (const f of Object.keys(b.common)) {
+    if (f === 'market') {
+      for (const g of Object.keys(cm)) if (!same((a.common.market || {})[g], (b.common.market || {})[g]))
+        out.push(LABELS[g] + ': ' + fmt(g, (a.common.market || {})[g]) + ' → ' + fmt(g, (b.common.market || {})[g]));
+    } else if (!same(a.common[f], b.common[f])) out.push(LABELS[f] + ': ' + fmt(f, a.common[f]) + ' → ' + fmt(f, b.common[f]));
+  }
   b.programs.forEach((p, i) => {
     const o = a.programs[i];
-    for (const f of Object.keys(p)) if (f !== 'key' && o[f] !== p[f]) out.push(p.key + ' ' + LABELS[f] + ': ' + fmt(f, o[f]) + ' → ' + fmt(f, p[f]));
+    const fields = new Set([...Object.keys(o), ...Object.keys(p)]);
+    for (const f of fields) if (f !== 'key' && !same(o[f], p[f])) out.push(p.key + ' ' + LABELS[f] + ': ' + fmt(f, o[f]) + ' → ' + fmt(f, p[f]));
   });
   return out;
 }
-function pick(o, fields) { const r = {}; for (const f of fields) r[f] = o ? o[f] : undefined; return r; }
+function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !== undefined) r[f] = o[f]; return r; }
+// Rebuild each object field by field so nothing but known figures reaches the commit
+function cleanCommon(c) {
+  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate']);
+  if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
+  return out;
+}
+function cleanProgram(p) {
+  const out = pick(p, ['key', 'approx', 'shares', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
+  if (p && p.market) out.market = pick(p.market, ['generation', 'yearFrom', 'yearTo']);
+  return out;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function httpError(status, message) { const e = new Error(message); e.status = status; return e; }

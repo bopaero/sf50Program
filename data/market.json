@@ -1,0 +1,283 @@
+{
+  "checkedAt": "2026-10-02T13:00:17+00:00",
+  "source": "cirrusaircraft.com pre-owned listings",
+  "roundTo": 50000,
+  "maxListingAgeDays": 90,
+  "costingVersion": "v2026-09-30.1",
+  "feedListings": 368,
+  "visionJetListings": 33,
+  "excluded": {
+    "sold or pending": 6,
+    "no price": 1,
+    "implausible price": 0,
+    "stale": 3
+  },
+  "programs": {
+    "G1": {
+      "current": 1900000,
+      "generation": "G1",
+      "years": [
+        2016,
+        2018
+      ],
+      "count": 3,
+      "comparables": [
+        {
+          "registration": "N223WY",
+          "serial": "0033",
+          "year": 2018,
+          "generation": "G1",
+          "variation": "",
+          "hours": 2298,
+          "price": 1700000,
+          "modified": "2026-09-30",
+          "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g1-0033-n223wy/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "N82WF",
+          "serial": "0007",
+          "year": 2016,
+          "generation": "G1",
+          "variation": "Elite",
+          "hours": 1652,
+          "price": 1789000,
+          "modified": "2026-08-08",
+          "link": "https://aerista.com/showroom/n82wf/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N967PT",
+          "serial": "0042",
+          "year": 2018,
+          "generation": "G1",
+          "variation": "",
+          "hours": 1551,
+          "price": 1995000,
+          "modified": "2026-07-24",
+          "link": "https://lonemountainaircraft.com/inventory/n967pt/",
+          "certified": false,
+          "available": true
+        }
+      ],
+      "median": 1789000,
+      "proposed": 1800000
+    },
+    "G2": {
+      "current": 2600000,
+      "generation": "G2",
+      "years": [
+        2019,
+        2021
+      ],
+      "count": 6,
+      "comparables": [
+        {
+          "registration": "N473MM",
+          "serial": "0107",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "",
+          "hours": 1270,
+          "price": 2399000,
+          "modified": "2026-09-09",
+          "link": "https://lonemountainaircraft.com/inventory/n473mm/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N35JK",
+          "serial": "0119",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "Elite",
+          "hours": 489,
+          "price": 2600000,
+          "modified": "2026-09-30",
+          "link": "https://cirrusaircraft.com/aircraft-listings/n35jk/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "N518BG",
+          "serial": "0145",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "Elite",
+          "hours": 1100,
+          "price": 2600000,
+          "modified": "2026-09-30",
+          "link": "https://cirrusaircraft.com/aircraft-listings/n518bg/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "N697DC",
+          "serial": "0200",
+          "year": 2020,
+          "generation": "G2",
+          "variation": "Elite",
+          "hours": 1400,
+          "price": 2700000,
+          "modified": "2026-09-10",
+          "link": "https://cirrusaircraft.com/aircraft-listings/n697dc-2020-g2-vision-jet/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "N50G",
+          "serial": "0098",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "Premium",
+          "hours": 1000,
+          "price": 2750000,
+          "modified": "2026-10-01",
+          "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-premium-0098-n50g/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "PH-UKR",
+          "serial": "0237",
+          "year": 2020,
+          "generation": "G2",
+          "variation": "",
+          "hours": 206,
+          "price": 2845000,
+          "modified": "2026-09-08",
+          "link": "https://lonemountainaircraft.com/inventory/ph-ukr-2/",
+          "certified": false,
+          "available": true
+        }
+      ],
+      "median": 2650000.0,
+      "proposed": 2650000
+    },
+    "G2+": {
+      "current": 3100000,
+      "generation": "G2+",
+      "years": [
+        2021,
+        2023
+      ],
+      "count": 7,
+      "comparables": [
+        {
+          "registration": "N73SG",
+          "serial": "0284",
+          "year": 2021,
+          "generation": "G2+",
+          "variation": "Elite",
+          "hours": 340,
+          "price": 2949900,
+          "modified": "2026-08-20",
+          "link": "https://aerista.com/showroom/n73sg/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N71AB",
+          "serial": "0341",
+          "year": 2022,
+          "generation": "G2+",
+          "variation": "Elite",
+          "hours": 870,
+          "price": 2999900,
+          "modified": "2026-08-12",
+          "link": "https://aerista.com/showroom/n71ab/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N519AB",
+          "serial": "0381",
+          "year": 2022,
+          "generation": "G2+",
+          "variation": "Elite",
+          "hours": 500,
+          "price": 2999900,
+          "modified": "2026-09-22",
+          "link": "https://aerista.com/showroom/n519ab/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N325JB",
+          "serial": "0421",
+          "year": 2022,
+          "generation": "G2+",
+          "variation": "Premium",
+          "hours": 349,
+          "price": 3100000,
+          "modified": "2026-09-04",
+          "link": "https://cirrusaircraft.com/aircraft-listings/n325jb/",
+          "certified": true,
+          "available": true
+        },
+        {
+          "registration": "N696MY",
+          "serial": "0462",
+          "year": 2023,
+          "generation": "G2+",
+          "variation": "Elite",
+          "hours": 355,
+          "price": 3149900,
+          "modified": "2026-08-19",
+          "link": "https://aerista.com/showroom/n696my/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N712VJ",
+          "serial": "0435",
+          "year": 2023,
+          "generation": "G2+",
+          "variation": "",
+          "hours": 924,
+          "price": 3190000,
+          "modified": "2026-08-17",
+          "link": "https://lonemountainaircraft.com/inventory/n712vj/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N1607L",
+          "serial": "0456",
+          "year": 2023,
+          "generation": "G2+",
+          "variation": "Arriv\u00e9e",
+          "hours": 482,
+          "price": 3200000,
+          "modified": "2026-09-10",
+          "link": "https://cirrusaircraft.com/aircraft-listings/n1607l/",
+          "certified": true,
+          "available": true
+        }
+      ],
+      "median": 3100000,
+      "proposed": 3100000
+    },
+    "G3": {
+      "currentBase": 2850000,
+      "cirrusBase": 2850000,
+      "options": 835000
+    }
+  },
+  "proposals": [
+    {
+      "program": "G1",
+      "field": "acquisition",
+      "from": 1900000,
+      "to": 1800000
+    },
+    {
+      "program": "G2",
+      "field": "acquisition",
+      "from": 2600000,
+      "to": 2650000
+    }
+  ]
+}
