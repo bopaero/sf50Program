@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-02T13:00:17+00:00",
+  "checkedAt": "2026-10-02T13:12:25+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
@@ -279,5 +279,6 @@
       "from": 2600000,
       "to": 2650000
     }
-  ]
+  ],
+  "declined": true
 }
