@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-02T13:12:25+00:00",
+  "checkedAt": "2026-10-03T15:08:49+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
-  "costingVersion": "v2026-09-30.1",
-  "feedListings": 368,
+  "costingVersion": "v2026-10-02.4",
+  "feedListings": 367,
   "visionJetListings": 33,
   "excluded": {
     "sold or pending": 6,
@@ -81,8 +81,8 @@
           "generation": "G2",
           "variation": "",
           "hours": 1270,
-          "price": 2399000,
-          "modified": "2026-09-09",
+          "price": 2349000,
+          "modified": "2026-10-02",
           "link": "https://lonemountainaircraft.com/inventory/n473mm/",
           "certified": false,
           "available": true
