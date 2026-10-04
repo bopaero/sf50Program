@@ -18,7 +18,12 @@ ALLOWED_EMAILS = "compilotrc@mac.com,raymond@bopaero.com"
 ACCESS_TEAM_DOMAIN = "calm-field-898f.cloudflareaccess.com"
 ACCESS_AUD = "dec5d15a5d506d8e1e8de261b37c723fd49d3907165e953337efca77b21ae9d0"
 
-# Secret (never in this public repo):
-#   GITHUB_TOKEN — fine-grained token, bopaero/sf50Program only,
+# This Worker is the costing editor for every aircraft: SF50 at /, SR22T at
+# /sr22t (bopaero/sr22tProgram; its editor page and costing.js are bundled from
+# ../../sr22tProgram, so deploy with that repo checked out beside this one).
+#
+# Secret (never in these public repos):
+#   GITHUB_TOKEN — fine-grained token, bopaero/sf50Program AND bopaero/sr22tProgram,
 #                  Contents: read & write, Actions: read
+#   (optional) GITHUB_TOKEN_SR22T — a separate token for bopaero/sr22tProgram only
 #   set with:  pbpaste | npx wrangler secret put GITHUB_TOKEN -c admin/wrangler.toml

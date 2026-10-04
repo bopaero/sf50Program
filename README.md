@@ -36,6 +36,11 @@ the site and PDF in one step. The PDF is not committed at the repo root.
 
 ## The editor Worker (`admin/`)
 
+Since 2026-10-04 this one Worker is the costing editor for **every** aircraft, all
+behind the same Cloudflare Access login: SF50 at `/`, SR22T at `/sr22t`
+(`bopaero/sr22tProgram` — its editor page and `costing.js` are bundled from
+`../../sr22tProgram`, so deploy with that repo checked out beside this one).
+
 `admin/worker.js` + `admin/editor.html`, deployed with
 `npx wrangler deploy -c admin/wrangler.toml`. It verifies the Access JWT itself
 (signature, audience, issuer, expiry, e-mail allowlist) and fails closed until

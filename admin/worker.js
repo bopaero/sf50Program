@@ -1,9 +1,15 @@
-// SF50 costing editor — private Cloudflare Worker.
+// bop Aero costing editor — private Cloudflare Worker, one per account, serving
+// every aircraft program behind the same Cloudflare Access login:
 //
-//   GET  /              the editor page
-//   GET  /api/costing   current published costing + its git blob sha
-//   POST /api/publish   validate, assign the next version, commit data/costing.json
-//   GET  /api/status    publish workflow status for a commit
+//   /          SF50 program  (bopaero/sf50Program)
+//   /sr22t     SR22T program (bopaero/sr22tProgram, added 2026-10-04)
+//
+// For each aircraft, under its prefix:
+//   GET  <prefix>/              the editor page
+//   GET  <prefix>/api/costing   current published costing + its git blob sha
+//   POST <prefix>/api/publish   validate, assign the next version, commit data/costing.json
+//   GET  <prefix>/api/market    latest market check
+//   GET  <prefix>/api/status    publish workflow status for a commit
 //
 // Access control, in two layers:
 //   1. Cloudflare Access sits in front of this workers.dev hostname (one-time
@@ -12,14 +18,45 @@
 //      signature, audience, issuer, expiry, and the e-mail allowlist — and fails
 //      CLOSED until ACCESS_TEAM_DOMAIN and ACCESS_AUD are configured.
 //
-// Secret: GITHUB_TOKEN — fine-grained, bopaero/sf50Program only, Contents
-// read/write + Actions read. Never in this repo (it is public).
+// Secrets: GITHUB_TOKEN — fine-grained, Contents read/write + Actions read on
+// bopaero/sf50Program (and bopaero/sr22tProgram, unless GITHUB_TOKEN_SR22T is
+// set for that repo). Never in these repos (they are public).
 
 import SF50Costing from '../assets/costing.js';
 import EDITOR_HTML from './editor.html';
+import SR22TCosting from '../../sr22tProgram/assets/costing.js';
+import SR22T_EDITOR_HTML from '../../sr22tProgram/admin/editor.html';
 
 const COSTING_PATH = 'data/costing.json';
-const SITE = 'https://sf50program.bopaero.com';
+
+// Field lists rebuild every published object field by field, so nothing but
+// known figures reaches a commit.
+const AIRCRAFT = {
+  sf50: {
+    prefix: '', name: 'SF50', repo: env => env.GITHUB_REPO, token: env => env.GITHUB_TOKEN,
+    lib: SF50Costing, html: EDITOR_HTML, site: 'https://sf50program.bopaero.com',
+    common: ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays'],
+    program: ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
+    programMarket: ['generation', 'yearFrom', 'yearTo']
+  },
+  sr22t: {
+    prefix: '/sr22t', name: 'SR22T', repo: () => 'bopaero/sr22tProgram', token: env => env.GITHUB_TOKEN_SR22T || env.GITHUB_TOKEN,
+    lib: SR22TCosting, html: SR22T_EDITOR_HTML,
+    // Until sr22tprogram.bopaero.com has its DNS record the site is on github.io
+    site: 'https://bopaero.github.io', sitePath: '/sr22tProgram',
+    common: ['fixedCost', 'closing', 'taxRate', 'commissionRate'],
+    program: ['key', 'approx', 'shares', 'sharesRemaining', 'maxHours', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
+    programMarket: null,
+    // Bridge aircraft: figures editable; model, comparables model/generation/variation
+    // and its features are structural and carry over from the published costing.
+    bridge: ['value', 'monthlyLoan', 'monthlyInsurance', 'leaseRate', 'leaseMinRate', 'leaseHoursPerMonth'],
+    bridgeMarket: ['yearFrom', 'yearTo']
+  }
+};
+function aircraftFor(pathname) {
+  if (pathname === '/sr22t' || pathname.startsWith('/sr22t/')) return AIRCRAFT.sr22t;
+  return AIRCRAFT.sf50;
+}
 
 export default {
   async fetch(request, env) {
@@ -32,22 +69,25 @@ export default {
     }
 
     try {
-      if (request.method === 'GET' && url.pathname === '/') {
-        return new Response(EDITOR_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders() });
+      const cfg = aircraftFor(url.pathname);
+      const path = url.pathname.slice(cfg.prefix.length) || '/';
+      if (cfg.prefix && url.pathname === cfg.prefix) return Response.redirect(url.origin + cfg.prefix + '/', 302);
+      if (request.method === 'GET' && path === '/') {
+        return new Response(cfg.html.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(cfg) });
       }
-      if (request.method === 'GET' && url.pathname === '/api/costing') {
-        const { costing, sha } = await readCosting(env);
+      if (request.method === 'GET' && path === '/api/costing') {
+        const { costing, sha } = await readCosting(env, cfg);
         return json(200, { costing, sha, user });
       }
-      if (request.method === 'POST' && url.pathname === '/api/publish') {
+      if (request.method === 'POST' && path === '/api/publish') {
         if (request.headers.get('Origin') !== url.origin) return json(403, { error: 'cross-origin request refused' });
-        return json(...(await publish(await request.json(), env, user)));
+        return json(...(await publish(await request.json(), env, user, cfg)));
       }
-      if (request.method === 'GET' && url.pathname === '/api/market') {
-        return json(200, await market(env));
+      if (request.method === 'GET' && path === '/api/market') {
+        return json(200, await market(env, cfg));
       }
-      if (request.method === 'GET' && url.pathname === '/api/status') {
-        return json(200, await status(url.searchParams.get('commit'), env));
+      if (request.method === 'GET' && path === '/api/status') {
+        return json(200, await status(url.searchParams.get('commit'), env, cfg));
       }
       return text(404, 'not found');
     } catch (e) {
@@ -101,15 +141,16 @@ async function accessKey(issuer, kid) {
 }
 
 // ── GitHub ────────────────────────────────────────────────────────────────────
-async function gh(env, path, init = {}) {
-  if (!env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN secret is not set on the Worker.');
-  const r = await fetch('https://api.github.com/repos/' + env.GITHUB_REPO + path, {
+async function gh(env, cfg, path, init = {}) {
+  const token = cfg.token(env);
+  if (!token) throw new Error('GITHUB_TOKEN secret is not set on the Worker.');
+  const r = await fetch('https://api.github.com/repos/' + cfg.repo(env) + path, {
     ...init,
     headers: {
-      'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+      'Authorization': 'Bearer ' + token,
       'Accept': 'application/vnd.github+json',
       'X-GitHub-Api-Version': '2022-11-28',
-      'User-Agent': 'sf50-costing-editor',
+      'User-Agent': 'bopaero-costing-editor',
       ...(init.body ? { 'Content-Type': 'application/json' } : {})
     }
   });
@@ -118,11 +159,11 @@ async function gh(env, path, init = {}) {
 
 // Latest market check (data/market.json, written by the Market check workflow)
 // and when that workflow last ran — it only commits when the market changed.
-async function market(env) {
+async function market(env, cfg) {
   const out = { market: null, lastRun: null };
-  const r = await gh(env, '/contents/data/market.json?ref=main');
+  const r = await gh(env, cfg, '/contents/data/market.json?ref=main');
   if (r.ok) out.market = JSON.parse(decodeBase64Utf8((await r.json()).content));
-  const runs = await gh(env, '/actions/workflows/market-check.yml/runs?per_page=1');
+  const runs = await gh(env, cfg, '/actions/workflows/market-check.yml/runs?per_page=1');
   if (runs.ok) {
     const run = (await runs.json()).workflow_runs[0];
     if (run) out.lastRun = { at: run.run_started_at || run.created_at, status: run.status, conclusion: run.conclusion, url: run.html_url };
@@ -130,21 +171,22 @@ async function market(env) {
   return out;
 }
 
-async function readCosting(env) {
-  const r = await gh(env, '/contents/' + COSTING_PATH + '?ref=main');
+async function readCosting(env, cfg) {
+  const r = await gh(env, cfg, '/contents/' + COSTING_PATH + '?ref=main');
+  if (r.status === 404 || r.status === 403) throw new Error('GitHub read failed: HTTP ' + r.status + ' — the editor\'s GitHub token may not have access to ' + cfg.repo(env) + ' yet.');
   if (!r.ok) throw new Error('GitHub read failed: HTTP ' + r.status);
   const file = await r.json();
   const costing = JSON.parse(decodeBase64Utf8(file.content));
   return { costing, sha: file.sha };
 }
 
-async function publish(body, env, user) {
+async function publish(body, env, user, cfg) {
   const draft = body && body.costing, baseSha = body && body.sha;
   const note = String((body && body.note) || '').trim().slice(0, 300);
   if (!draft || !baseSha) return [400, { error: 'costing and sha are required' }];
   if (!note) return [400, { error: 'Describe the change — it becomes the published change note.' }];
 
-  const { costing: current, sha } = await readCosting(env);
+  const { costing: current, sha } = await readCosting(env, cfg);
   if (sha !== baseSha) return [409, { error: 'Costing was published from somewhere else since you opened the editor. Reload to start from the latest version.' }];
 
   // Only figures may change here. Programs are matched to the document's wording
@@ -157,36 +199,37 @@ async function publish(body, env, user) {
     publishedAt: new Date().toISOString(),
     note,
     baseline: current.baseline,
-    common: cleanCommon(draft.common),
-    programs: draft.programs.map((p, i) => keepStandard(cleanProgram(p), current.programs[i])),
+    common: cleanCommon(draft.common, cfg),
+    programs: draft.programs.map((p, i) => keepStandard(cleanProgram(p, cfg), current.programs[i])),
+    ...(cfg.bridge && current.bridge ? { bridge: cleanBridge(draft.bridge, current.bridge, cfg) } : {}),
     sensitivitySteps: current.sensitivitySteps,
     // Feature names are structural (the document and calculator lay them out); only
     // each program's status and detail are edited, so the labels carry over unchanged.
     // So does any feature marked standard (factory equipment): it is not editable.
     ...(current.featureLabels ? { featureLabels: current.featureLabels } : {})
   };
-  const problems = SF50Costing.validate(next);
+  const problems = cfg.lib.validate(next);
   if (problems.length) return [400, { error: 'Not published: ' + problems.join('; ') }];
 
-  const changes = diff(current, next);
+  const changes = diff(current, next, cfg);
   if (!changes.length) return [400, { error: 'Nothing changed — no new version published.' }];
 
   const message = 'Costing ' + next.version + ': ' + note + '\n\n' + changes.map(c => '- ' + c).join('\n') +
     '\n\nPublished from the costing editor by ' + user;
   const content = btoaUtf8(JSON.stringify(next, null, 2) + '\n');
-  const r = await gh(env, '/contents/' + COSTING_PATH, {
+  const r = await gh(env, cfg, '/contents/' + COSTING_PATH, {
     method: 'PUT',
-    body: JSON.stringify({ message, content, sha, branch: 'main', committer: { name: 'SF50 Costing Editor', email: user } })
+    body: JSON.stringify({ message, content, sha, branch: 'main', committer: { name: cfg.name + ' Costing Editor', email: user } })
   });
   if (r.status === 409) return [409, { error: 'Costing changed while publishing. Reload and try again.' }];
   if (!r.ok) return [502, { error: 'GitHub commit failed: HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200) }];
   const out = await r.json();
-  return [200, { version: next.version, commit: out.commit.sha, changes, site: SITE }];
+  return [200, { version: next.version, commit: out.commit.sha, changes, site: cfg.site + (cfg.sitePath || '') }];
 }
 
-async function status(commit, env) {
+async function status(commit, env, cfg) {
   if (!/^[0-9a-f]{40}$/.test(commit || '')) return { state: 'unknown' };
-  const r = await gh(env, '/actions/runs?head_sha=' + commit + '&per_page=5');
+  const r = await gh(env, cfg, '/actions/runs?head_sha=' + commit + '&per_page=5');
   if (!r.ok) return { state: 'unknown', error: 'HTTP ' + r.status };
   const run = (await r.json()).workflow_runs.find(w => w.name === 'Publish');
   if (!run) return { state: 'queued' };
@@ -210,19 +253,24 @@ const LABELS = {
   management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
   basePrice: 'Cirrus base price', options: 'Options & equipment',
   sharesRemaining: 'Shares remaining (unsold)', aircraftHours: 'Aircraft scheduling hours (yearly)', aircraftDays: 'Aircraft scheduling days (yearly)',
-  market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)'
+  market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)',
+  maxHours: 'Flying hours per share (yearly)',
+  value: 'Bridge aircraft value', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
+  leaseRate: 'Bridge dry-lease rate (per hour)', leaseMinRate: 'Bridge minimum dry-lease rate (per hour)', leaseHoursPerMonth: 'Bridge dry-lease hours (monthly average)',
+  yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to'
 };
 function fmt(field, v) {
   if (v === undefined) return '—';
   if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
   if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
+  if (['maxHours', 'leaseHoursPerMonth', 'yearFrom', 'yearTo'].includes(field)) return String(v);
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate' || field === 'commissionRate') return (v * 100).toFixed(2) + '%';
   if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
 function same(x, y) { return JSON.stringify(x) === JSON.stringify(y); }
-function diff(a, b) {
+function diff(a, b, cfg) {
   const out = [];
   const cm = Object.assign({}, a.common.market, b.common.market);
   for (const f of Object.keys(b.common)) {
@@ -241,7 +289,7 @@ function diff(a, b) {
         for (const k of new Set([...Object.keys(o.features || {}), ...Object.keys(p.features || {})])) {
           const x = (o.features || {})[k], y = (p.features || {})[k];
           if (same(x, y)) continue;
-          const show = v => v ? '"' + SF50Costing.featureText(v) + '"' : '—';
+          const show = v => v ? '"' + cfg.lib.featureText(v) + '"' : '—';
           out.push(p.key + ' ' + (names[k] || k) + ': ' + show(x) + ' → ' + show(y));
         }
         continue;
@@ -249,12 +297,17 @@ function diff(a, b) {
       out.push(p.key + ' ' + LABELS[f] + ': ' + fmt(f, o[f]) + ' → ' + fmt(f, p[f]));
     }
   });
+  if (cfg.bridge && a.bridge && b.bridge) {
+    for (const f of cfg.bridge) if (!same(a.bridge[f], b.bridge[f])) out.push(LABELS[f] + ': ' + fmt(f, a.bridge[f]) + ' → ' + fmt(f, b.bridge[f]));
+    for (const f of cfg.bridgeMarket) if (!same((a.bridge.market || {})[f], (b.bridge.market || {})[f]))
+      out.push(LABELS[f] + ': ' + fmt(f, (a.bridge.market || {})[f]) + ' → ' + fmt(f, (b.bridge.market || {})[f]));
+  }
   return out;
 }
 function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !== undefined) r[f] = o[f]; return r; }
 // Rebuild each object field by field so nothing but known figures reaches the commit
-function cleanCommon(c) {
-  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays']);
+function cleanCommon(c, cfg) {
+  const out = pick(c, cfg.common);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
 }
@@ -264,9 +317,15 @@ function keepStandard(next, cur) {
   if (std.length) { next.features = next.features || {}; for (const k of std) next.features[k] = { ...cur.features[k] }; }
   return next;
 }
-function cleanProgram(p) {
-  const out = pick(p, ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
-  if (p && p.market) out.market = pick(p.market, ['generation', 'yearFrom', 'yearTo']);
+function cleanBridge(b, cur, cfg) {
+  const out = { model: cur.model, ...pick(b, cfg.bridge) };
+  if (cur.market) out.market = { ...cur.market, ...pick((b && b.market) || {}, cfg.bridgeMarket) };
+  if (cur.features) out.features = JSON.parse(JSON.stringify(cur.features));
+  return out;
+}
+function cleanProgram(p, cfg) {
+  const out = pick(p, cfg.program);
+  if (p && p.market && cfg.programMarket) out.market = pick(p.market, cfg.programMarket);
   if (p && p.features) {
     out.features = {};
     for (const k of Object.keys(p.features)) {
@@ -295,7 +354,7 @@ function json(status, body) {
 function text(status, body) {
   return new Response(body, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
-function pageHeaders() {
+function pageHeaders(cfg) {
   return {
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store',
@@ -304,10 +363,10 @@ function pageHeaders() {
     'X-Robots-Tag': 'noindex, nofollow',
     'Content-Security-Policy': [
       "default-src 'none'",
-      "script-src 'unsafe-inline' " + SITE,
+      "script-src 'unsafe-inline' " + cfg.site,
       "style-src 'unsafe-inline'",
       "connect-src 'self'",
-      "frame-src " + SITE,
+      "frame-src " + cfg.site,
       "img-src 'self' data:",
       "base-uri 'none'", "form-action 'none'", "frame-ancestors 'none'"
     ].join('; ')
