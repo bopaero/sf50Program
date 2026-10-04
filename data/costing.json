@@ -1,13 +1,14 @@
 {
-  "version": "v2026-10-04.2",
-  "publishedAt": "2026-10-04T22:48:48.121Z",
-  "note": "Document wording: connectivity installation lines now come from the costing (no figures changed).",
+  "version": "v2026-10-04.3",
+  "publishedAt": "2026-10-04T22:54:15.057Z",
+  "note": "Sales commission added to the acquisition cost (rate 0% until the arrangement is agreed; no figures changed).",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
     "jetstream": 389900,
     "closing": 9500,
     "taxRate": 0.07,
+    "commissionRate": 0,
     "aircraftHours": 1400,
     "aircraftDays": 280,
     "market": {

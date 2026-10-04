@@ -32,7 +32,8 @@
     fixedCost:        { min: 0,    max: 5e6 },
     jetstream:        { min: 0,    max: 2e6 },
     closing:          { min: 0,    max: 1e6 },
-    taxRate:          { min: 0,    max: 0.2 }
+    taxRate:          { min: 0,    max: 0.2 },
+    commissionRate:   { min: 0,    max: 0.1 }      // sales commission, on aircraft acquisition value
   };
 
   function checkNumber(errors, where, field, value) {
@@ -59,7 +60,7 @@
     if (!c || typeof c !== 'object') return ['costing is missing'];
     if (!/^v\d{4}-\d{2}-\d{2}\.\d+$/.test(c.version || '')) errors.push('version must look like v2026-09-30.1');
     var common = c.common || {};
-    ['fixedCost', 'jetstream', 'closing', 'taxRate', 'aircraftHours', 'aircraftDays'].forEach(function (f) { checkNumber(errors, 'common', f, common[f]); });
+    ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays'].forEach(function (f) { checkNumber(errors, 'common', f, common[f]); });
     if (!Array.isArray(c.programs) || !c.programs.length) { errors.push('programs are missing'); return errors; }
     var keys = {};
     c.programs.forEach(function (p) {
@@ -119,7 +120,8 @@
       p.equity         = 1 / p.interests;
       p.allocation     = 1 / p.shares;
       p.tax            = Math.round(p.acquisition * common.taxRate);
-      p.capitalization = p.acquisition + p.connectivityCost + common.jetstream + p.tax + common.closing;
+      p.commission     = Math.round(p.acquisition * common.commissionRate);   // paid to the sales professional; capitalized, not taxed
+      p.capitalization = p.acquisition + p.connectivityCost + common.jetstream + p.tax + p.commission + common.closing;
       p.capPerShare    = p.capitalization / p.shares;
       p.annualTotal    = common.fixedCost + p.management + p.reserve;
       p.annualFee      = p.annualTotal / p.shares;

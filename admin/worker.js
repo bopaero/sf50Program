@@ -205,7 +205,7 @@ function nextVersion(prev) {
 }
 const LABELS = {
   fixedCost: 'Aircraft fixed-cost reference', jetstream: 'JetStream at acquisition', closing: 'Acquisition / closing',
-  taxRate: 'Tax rate', approx: 'Approximate (pre-owned planning values)', shares: 'Shares available',
+  taxRate: 'Tax rate', commissionRate: 'Sales commission rate', approx: 'Approximate (pre-owned planning values)', shares: 'Shares available',
   acquisition: 'Aircraft acquisition value', connectivityCost: 'Connectivity installation cost',
   management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
   basePrice: 'Cirrus base price', options: 'Options & equipment',
@@ -217,7 +217,7 @@ function fmt(field, v) {
   if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
   if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
   if (field === 'maxListingAgeDays') return String(v);
-  if (field === 'taxRate') return (v * 100).toFixed(2) + '%';
+  if (field === 'taxRate' || field === 'commissionRate') return (v * 100).toFixed(2) + '%';
   if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
@@ -254,7 +254,7 @@ function diff(a, b) {
 function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !== undefined) r[f] = o[f]; return r; }
 // Rebuild each object field by field so nothing but known figures reaches the commit
 function cleanCommon(c) {
-  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate', 'aircraftHours', 'aircraftDays']);
+  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays']);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
 }

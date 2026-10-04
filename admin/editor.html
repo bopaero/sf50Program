@@ -135,6 +135,7 @@ button.small { font-size:12px; padding:5px 10px; }
     ['jetstream', 'JetStream at acquisition', 'money'],
     ['closing', 'Acquisition / closing / setup', 'money'],
     ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct'],
+    ['commissionRate', 'Sales commission rate (on acquisition value; customers see it only inside the acquisition / closing cost)', 'pct'],
     ['aircraftHours', 'Aircraft scheduling hours per year (divided among the shares)', 'int'],
     ['aircraftDays', 'Aircraft scheduling days per year (divided among the shares)', 'int']
   ];
@@ -167,6 +168,7 @@ button.small { font-size:12px; padding:5px 10px; }
   function getPath(o, path) { return path.split('.').reduce(function (x, k) { return x == null ? undefined : x[k]; }, o); }
   function setPath(o, path, v) { var ks = path.split('.'), last = ks.pop(); ks.reduce(function (x, k) { return x[k]; }, o)[last] = v; }
   var RESULTS = [
+    ['commission', 'Sales commission'],
     ['capitalization', 'Total program capitalization'],
     ['capPerShare', 'Capital per available share', true],
     ['annualTotal', 'Total annual program requirement'],

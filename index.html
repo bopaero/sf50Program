@@ -295,6 +295,9 @@ function connectivityAllowance(p) {
   var f = p.features && p.features.connectivity;
   return f && f.status === 'included' ? 'No additional retrofit' : '$0 base assumption';
 }
+// The sales commission is never shown as its own line to customers (Raymond
+// 2026-10-04): it is part of the acquisition / closing cost they see.
+function acquisitionCost(p) { return COMMON.closing + p.commission; }
 function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.text) : '—'; }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -370,7 +373,7 @@ function economicsPage() {
       ['Connectivity installation',     function(p){ return p.connectivityCost ? tilde(p, compact(p.connectivityCost)) + ' required' : connectivityText(p); }],
       ['JetStream at acquisition',      function(p){ return full(COMMON.jetstream) + (p.approx ? ' ref.' : ''); }],
       ['Estimated tax',                 function(p){ return p.approx ? tilde(p, compact(p.tax)) : full(p.tax); }],
-      ['Acquisition / closing / setup', function(p){ return tilde(p, full(COMMON.closing)); }],
+      ['Acquisition / closing / setup', function(p){ return tilde(p, full(acquisitionCost(p))); }],
       ['Total program capitalization',  function(p){ return tilde(p, compact(p.capitalization)); }],
       ['Capital per available share',   function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }]
     ]) +
@@ -413,7 +416,7 @@ function programPage(p) {
       ['Connectivity capital allowance', connectivityAllowance(p)],
       [esc(p.jetstreamLabel), full(COMMON.jetstream)],
       ['Estimated tax', tilde(p, full(p.tax))],
-      [esc(p.closingLabel), tilde(p, full(COMMON.closing))],
+      [esc(p.closingLabel), tilde(p, full(acquisitionCost(p)))],
       ['Total program capitalization', tilde(p, full(p.capitalization))],
       ['Capital per available owner share', tilde(p, full(p.capPerShare))]
     ]) +
