@@ -134,12 +134,15 @@ button.small { font-size:12px; padding:5px 10px; }
     ['fixedCost', 'Aircraft fixed-cost reference (annual)', 'money'],
     ['jetstream', 'JetStream at acquisition', 'money'],
     ['closing', 'Acquisition / closing / setup', 'money'],
-    ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct']
+    ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct'],
+    ['aircraftHours', 'Aircraft scheduling hours per year (divided among the shares)', 'int'],
+    ['aircraftDays', 'Aircraft scheduling days per year (divided among the shares)', 'int']
   ];
   // [path, label, kind, applies(program)] — applies may return 'computed' for a read-only total
   function isNew(p) { return p.basePrice !== undefined; }
   var PROG_FIELDS = [
     ['shares', 'Shares available for purchase', 'int', function () { return true; }],
+    ['sharesRemaining', 'Shares remaining (unsold; shown on the website calculator)', 'int', function () { return true; }],
     ['acquisition', 'Aircraft acquisition value', 'money', function (p) { return isNew(p) ? 'computed' : true; }],
     ['basePrice', '  New: Cirrus base price (tracked)', 'money', isNew],
     ['options', '  New: options & equipment', 'money', isNew],
@@ -168,7 +171,9 @@ button.small { font-size:12px; padding:5px 10px; }
     ['capPerShare', 'Capital per available share', true],
     ['annualTotal', 'Total annual program requirement'],
     ['annualFee', 'Annual Program Fee / owner', true],
-    ['concentration', 'Schedule concentration']
+    ['concentration', 'Schedule concentration'],
+    ['schedulingHours', 'Scheduling hours / share'],
+    ['schedulingDays', 'Scheduling days / share']
   ];
   var BIG_CHANGE = 0.10;   // warn when a per-owner figure moves more than 10%
 
@@ -235,7 +240,7 @@ button.small { font-size:12px; padding:5px 10px; }
     var cr = $('commonRows'); cr.innerHTML = '';
     COMMON_FIELDS.forEach(function (f) {
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + f[1] + (f[2] === 'pct' ? ' (%)' : ' ($)') + '</td><td></td>';
+      tr.innerHTML = '<td>' + f[1] + (f[2] === 'pct' ? ' (%)' : f[2] === 'money' ? ' ($)' : '') + '</td><td></td>';
       tr.lastChild.appendChild(input('c_' + f[0], f[2], draft.common[f[0]], function (v, el) {
         draft.common[f[0]] = v; el.classList.toggle('changed', v !== published.common[f[0]]); refresh();
       }));
@@ -376,14 +381,14 @@ button.small { font-size:12px; padding:5px 10px; }
         rows += '<tr><td>' + r[1] + '</td>';
         now.programs.forEach(function (p, i) {
           var v = p[r[0]], o = was.programs[i][r[0]];
-          rows += '<td>' + (r[0] === 'concentration' ? v.toFixed(1) + 'x' : money(v)) + '</td>';
+          rows += '<td>' + (r[0] === 'concentration' ? v.toFixed(1) + 'x' : /^scheduling/.test(r[0]) ? String(v) : money(v)) + '</td>';
           if (r[2] && o && Math.abs(v - o) / o > BIG_CHANGE)
             warnings.push(p.key + ' ' + r[1] + ' moves ' + Math.round((v - o) / o * 100) + '% (' + money(o) + ' → ' + money(v) + '). Check this is intended.');
         });
         rows += '</tr>';
         rows += '<tr><td class="delta"></td>' + now.programs.map(function (p, i) {
           var v = p[r[0]], o = was.programs[i][r[0]];
-          if (Math.abs(v - o) < 0.5 || r[0] === 'concentration') return '<td class="delta"></td>';
+          if (Math.abs(v - o) < 0.5 || r[0] === 'concentration' || /^scheduling/.test(r[0])) return '<td class="delta"></td>';
           var pctChange = o ? (v - o) / o : 0, big = Math.abs(pctChange) > BIG_CHANGE;
           return '<td class="delta' + (big ? ' big' : '') + '">' + (v > o ? '+' : '−') + money(Math.abs(v - o)).slice(0) + ' (' + (pctChange * 100).toFixed(1) + '%)</td>';
         }).join('') + '</tr>';

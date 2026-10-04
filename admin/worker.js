@@ -209,6 +209,7 @@ const LABELS = {
   acquisition: 'Aircraft acquisition value', connectivityCost: 'Connectivity installation cost',
   management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
   basePrice: 'Cirrus base price', options: 'Options & equipment',
+  sharesRemaining: 'Shares remaining (unsold)', aircraftHours: 'Aircraft scheduling hours (yearly)', aircraftDays: 'Aircraft scheduling days (yearly)',
   market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)'
 };
 function fmt(field, v) {
@@ -217,7 +218,7 @@ function fmt(field, v) {
   if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate') return (v * 100).toFixed(2) + '%';
-  if (field === 'shares' || typeof v === 'boolean') return String(v);
+  if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
 function same(x, y) { return JSON.stringify(x) === JSON.stringify(y); }
@@ -253,7 +254,7 @@ function diff(a, b) {
 function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !== undefined) r[f] = o[f]; return r; }
 // Rebuild each object field by field so nothing but known figures reaches the commit
 function cleanCommon(c) {
-  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate']);
+  const out = pick(c, ['fixedCost', 'jetstream', 'closing', 'taxRate', 'aircraftHours', 'aircraftDays']);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
 }
@@ -264,7 +265,7 @@ function keepStandard(next, cur) {
   return next;
 }
 function cleanProgram(p) {
-  const out = pick(p, ['key', 'approx', 'shares', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
+  const out = pick(p, ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve']);
   if (p && p.market) out.market = pick(p.market, ['generation', 'yearFrom', 'yearTo']);
   if (p && p.features) {
     out.features = {};

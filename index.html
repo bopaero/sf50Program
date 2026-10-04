@@ -293,6 +293,8 @@ function conc(p, baselineWord) {
 function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
 // Feature notes live in the costing (edited in the costing editor), like every figure
+// Scheduling scales with the shares: the aircraft's yearly hours/days ÷ shares (costing.js)
+function scheduling(p) { return p.schedulingHours + ' hrs or ' + p.schedulingDays + ' days'; }
 function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.text) : '—'; }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -341,6 +343,7 @@ function coverPage() {
       ['Illustrative capital / share',function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }],
       ['Annual Program Fee / share',  function(p){ return p.approx ? tilde(p, compact(p.annualFee)) : full(p.annualFee); }],
       ['Relative schedule concentration', function(p){ return conc(p); }],
+      ['Scheduling / share',          function(p){ return scheduling(p); }],
       ['Connectivity',                function(p){ return featureNote(p, 'connectivity'); }],
       ['Garmin Safe Return',          function(p){ return featureNote(p, 'safeReturn'); }],
       ['bop Aero hourly-use fee',     function(){ return '$0'; }]
@@ -432,7 +435,8 @@ function programPage(p) {
     ]) +
     '<h3>5. Features</h3>' + kv(Object.keys(FEATURE_LABELS).map(function(k){ return [esc(FEATURE_LABELS[k]), featureNote(p, k)]; })) +
     '<h3>6. Access</h3>' +
-    '<div class="key" style="margin-top:6px">' + esc(p.access) + '</div>' +
+    '<div class="key" style="margin-top:6px">' + esc(p.access) + ' Each share may reserve up to ' + p.schedulingHours +
+      ' flight hours or ' + p.schedulingDays + ' days at one time.</div>' +
     '<p class="note">' + (p.fixedCostFootnote ? g1Footnote() : esc(p.pageNote)) + '</p>';
   return page(p.anchor, band(p.title), body);
 }

@@ -16,6 +16,9 @@
 
   var LIMITS = {
     shares:           { min: 1,    max: 20,     integer: true },
+    sharesRemaining:  { min: 0,    max: 20,     integer: true },   // sales status: unsold shares
+    aircraftHours:    { min: 100,  max: 5000,   integer: true },   // yearly hours the aircraft is scheduled
+    aircraftDays:     { min: 10,   max: 366,    integer: true },   // yearly days the aircraft is scheduled
     acquisition:      { min: 1e5,  max: 2e7 },
     basePrice:        { min: 5e5,  max: 2e7 },     // new aircraft: Cirrus published base price
     options:          { min: 0,    max: 1e7 },     // new aircraft: options & equipment
@@ -56,7 +59,7 @@
     if (!c || typeof c !== 'object') return ['costing is missing'];
     if (!/^v\d{4}-\d{2}-\d{2}\.\d+$/.test(c.version || '')) errors.push('version must look like v2026-09-30.1');
     var common = c.common || {};
-    ['fixedCost', 'jetstream', 'closing', 'taxRate'].forEach(function (f) { checkNumber(errors, 'common', f, common[f]); });
+    ['fixedCost', 'jetstream', 'closing', 'taxRate', 'aircraftHours', 'aircraftDays'].forEach(function (f) { checkNumber(errors, 'common', f, common[f]); });
     if (!Array.isArray(c.programs) || !c.programs.length) { errors.push('programs are missing'); return errors; }
     var keys = {};
     c.programs.forEach(function (p) {
@@ -65,7 +68,8 @@
       if (keys[p.key]) errors.push('duplicate program ' + p.key);
       keys[p.key] = true;
       if (typeof p.approx !== 'boolean') errors.push(where + ' approx must be true or false');
-      ['shares', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
+      ['shares', 'sharesRemaining', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
+      if (p.sharesRemaining > p.shares) errors.push(where + ' has more shares remaining (' + p.sharesRemaining + ') than shares available (' + p.shares + ')');
       // Price is either one acquisition value (pre-owned) or base + options (new)
       var split = p.basePrice !== undefined || p.options !== undefined;
       if (split && p.acquisition !== undefined) errors.push(where + ' has both an acquisition value and base + options');
@@ -120,6 +124,9 @@
       p.annualTotal    = common.fixedCost + p.management + p.reserve;
       p.annualFee      = p.annualTotal / p.shares;
       p.reserve5       = p.reserve * 5;
+      // Scheduling scales with the number of owners (Raymond 2026-10-02, proportional)
+      p.schedulingHours = Math.round(common.aircraftHours / p.shares);
+      p.schedulingDays  = Math.round(common.aircraftDays / p.shares);
       if (src.features) {
         p.features = {};
         for (var fk in src.features) {
