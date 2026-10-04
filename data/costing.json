@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-04.1",
-  "publishedAt": "2026-10-04T22:35:28.429Z",
-  "note": "Scheduling hours/days and shares remaining now kept in the costing (moved from the calculator; no figures changed).",
+  "version": "v2026-10-04.2",
+  "publishedAt": "2026-10-04T22:48:48.121Z",
+  "note": "Document wording: connectivity installation lines now come from the costing (no figures changed).",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,

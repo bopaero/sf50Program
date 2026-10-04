@@ -219,32 +219,23 @@ var PDF_FILE = 'bop-Aero-SF50-Ownership-Program-Options.pdf';
 var PROGRAM_TEXT = {
   'G1': { anchor: 'g1', title: 'G1 - Two-Share Near-Exclusive Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh', fixedCostFootnote: true,
-    connectivity: { comparison: 'Aircraft-dependent; aftermarket if capable',
-                    installation: 'Aircraft-dependent; aftermarket if capable',
-                    allowance: '$0 base assumption' },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Two owner shares. Near-exclusive access with approximately four times the owner scheduling concentration of the G3 program.' },
 
   'G2': { anchor: 'g2', title: 'G2 - Four-Share High-Access Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
-    connectivity: { comparison: null /* shows the cost */,
-                    installation: 'Required - aftermarket', allowance: null /* shows the cost */ },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
     pageNote: 'Every G2 program aircraft will have in-flight connectivity. If not already equipped, the approved aftermarket installation is completed before entry into service and capitalized into the program.' },
 
   'G2+': { anchor: 'g2plus', title: 'G2+ - Four-Share Later-Generation Pre-Owned Program',
     reserveName: 'Aircraft Refresh Reserve', reservePurpose: 'Used-to-used refresh',
-    connectivity: { comparison: 'Included',
-                    installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream acquisition reference', closingLabel: 'Acquisition / closing / registration',
     access: 'Four owner shares. Approximately twice the owner scheduling concentration of the G3 program.',
     pageNote: 'G2+ combines the four-share high-access structure with later-generation pre-owned aircraft and standard connectivity.' },
 
   'G3': { anchor: 'g3', title: 'G3 - New Aircraft Program', isNew: true,
     reserveName: 'Future Value Reserve', reservePurpose: 'New-to-new replacement',
-    connectivity: { comparison: 'Included',
-                    installation: 'Included / installed', allowance: 'No additional retrofit' },
     jetstreamLabel: 'JetStream at acquisition', closingLabel: 'Acquisition / closing / program setup',
     access: 'Eight owner shares. The G3 establishes the 1.0x scheduling baseline and provides the broadest distribution of fixed program costs.',
     pageNote: 'G3 program pricing reflects the current new-aircraft shared-ownership structure.' }
@@ -295,6 +286,15 @@ function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
 // Feature notes live in the costing (edited in the costing editor), like every figure
 // Scheduling scales with the shares: the aircraft's yearly hours/days ÷ shares (costing.js)
 function scheduling(p) { return p.schedulingHours + ' hrs or ' + p.schedulingDays + ' days'; }
+// Connectivity lines come from the costing too: the feature's status + detail
+// (edited in the costing editor) and the installation cost, so they can never
+// disagree with the Features section or the calculator.
+function connectivityText(p) { return featureNote(p, 'connectivity'); }
+function connectivityAllowance(p) {
+  if (p.connectivityCost) return tilde(p, full(p.connectivityCost));
+  var f = p.features && p.features.connectivity;
+  return f && f.status === 'included' ? 'No additional retrofit' : '$0 base assumption';
+}
 function featureNote(p, key) { var f = p.features && p.features[key]; return f ? esc(f.text) : '—'; }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -367,7 +367,7 @@ function economicsPage() {
       ['Legal equity per interest',     function(p){ return pct(p.equity); }],
       ['Owner cost allocation',         function(p){ return share(p.allocation) + ' each'; }],
       ['Aircraft acquisition value',    function(p){ return tilde(p, compact(p.acquisition)); }],
-      ['Connectivity installation',     function(p){ return p.connectivity.comparison ? esc(p.connectivity.comparison) : tilde(p, compact(p.connectivityCost)) + ' required'; }],
+      ['Connectivity installation',     function(p){ return p.connectivityCost ? tilde(p, compact(p.connectivityCost)) + ' required' : connectivityText(p); }],
       ['JetStream at acquisition',      function(p){ return full(COMMON.jetstream) + (p.approx ? ' ref.' : ''); }],
       ['Estimated tax',                 function(p){ return p.approx ? tilde(p, compact(p.tax)) : full(p.tax); }],
       ['Acquisition / closing / setup', function(p){ return tilde(p, full(COMMON.closing)); }],
@@ -397,7 +397,6 @@ function economicsPage() {
 }
 
 function programPage(p) {
-  var connAllowance = p.connectivity.allowance != null ? esc(p.connectivity.allowance) : tilde(p, full(p.connectivityCost));
   var body =
     '<h2>Program Structure</h2>' +
     '<h3>1. Ownership Structure</h3>' + kv([
@@ -410,8 +409,8 @@ function programPage(p) {
     ]) +
     '<h3>2. Acquisition &amp; Capitalization</h3>' + kv([
       ['Aircraft acquisition value', tilde(p, full(p.acquisition))],
-      ['Connectivity installation', esc(p.connectivity.installation)],
-      ['Connectivity capital allowance', connAllowance],
+      ['Connectivity installation', connectivityText(p)],
+      ['Connectivity capital allowance', connectivityAllowance(p)],
       [esc(p.jetstreamLabel), full(COMMON.jetstream)],
       ['Estimated tax', tilde(p, full(p.tax))],
       [esc(p.closingLabel), tilde(p, full(COMMON.closing))],
