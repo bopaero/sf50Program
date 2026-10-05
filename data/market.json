@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-03T15:08:49+00:00",
+  "checkedAt": "2026-10-05T19:43:24+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
-  "costingVersion": "v2026-10-02.4",
-  "feedListings": 367,
-  "visionJetListings": 33,
+  "costingVersion": "v2026-10-04.3",
+  "feedListings": 366,
+  "visionJetListings": 32,
   "excluded": {
     "sold or pending": 6,
     "no price": 1,
@@ -163,7 +163,7 @@
         2021,
         2023
       ],
-      "count": 7,
+      "count": 6,
       "comparables": [
         {
           "registration": "N73SG",
@@ -184,9 +184,9 @@
           "year": 2022,
           "generation": "G2+",
           "variation": "Elite",
-          "hours": 870,
+          "hours": 905,
           "price": 2999900,
-          "modified": "2026-08-12",
+          "modified": "2026-10-04",
           "link": "https://aerista.com/showroom/n71ab/",
           "certified": false,
           "available": true
@@ -231,19 +231,6 @@
           "available": true
         },
         {
-          "registration": "N712VJ",
-          "serial": "0435",
-          "year": 2023,
-          "generation": "G2+",
-          "variation": "",
-          "hours": 924,
-          "price": 3190000,
-          "modified": "2026-08-17",
-          "link": "https://lonemountainaircraft.com/inventory/n712vj/",
-          "certified": false,
-          "available": true
-        },
-        {
           "registration": "N1607L",
           "serial": "0456",
           "year": 2023,
@@ -257,8 +244,8 @@
           "available": true
         }
       ],
-      "median": 3100000,
-      "proposed": 3100000
+      "median": 3049950.0,
+      "proposed": 3050000
     },
     "G3": {
       "currentBase": 2850000,
@@ -278,7 +265,13 @@
       "field": "acquisition",
       "from": 2600000,
       "to": 2650000
+    },
+    {
+      "program": "G2+",
+      "field": "acquisition",
+      "from": 3100000,
+      "to": 3050000
     }
   ],
-  "declined": true
+  "declined": false
 }
