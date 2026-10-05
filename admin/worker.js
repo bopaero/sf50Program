@@ -42,8 +42,7 @@ const AIRCRAFT = {
   sr22t: {
     prefix: '/sr22t', name: 'SR22T', repo: () => 'bopaero/sr22tProgram', token: env => env.GITHUB_TOKEN_SR22T || env.GITHUB_TOKEN,
     lib: SR22TCosting, html: SR22T_EDITOR_HTML,
-    // Until sr22tprogram.bopaero.com has its DNS record the site is on github.io
-    site: 'https://bopaero.github.io', sitePath: '/sr22tProgram',
+    site: 'https://sr22tprogram.bopaero.com',
     common: ['fixedCost', 'closing', 'taxRate', 'commissionRate'],
     program: ['key', 'approx', 'shares', 'sharesRemaining', 'maxHours', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
     programMarket: null,
