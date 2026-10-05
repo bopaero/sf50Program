@@ -48,7 +48,7 @@ const AIRCRAFT = {
     programMarket: null,
     // Bridge aircraft: figures editable; model, comparables model/generation/variation
     // and its features are structural and carry over from the published costing.
-    bridge: ['value', 'monthlyLoan', 'monthlyInsurance', 'leaseRate', 'leaseMinRate', 'leaseHoursPerMonth'],
+    bridge: ['purchasePrice', 'monthlyLoan', 'monthlyInsurance', 'leaseMonthly', 'leaseIncludedHours', 'leaseExtraHourRate', 'leaseHourlyRate'],
     bridgeMarket: ['yearFrom', 'yearTo']
   }
 };
@@ -254,15 +254,16 @@ const LABELS = {
   sharesRemaining: 'Shares remaining (unsold)', aircraftHours: 'Aircraft scheduling hours (yearly)', aircraftDays: 'Aircraft scheduling days (yearly)',
   market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)',
   maxHours: 'Flying hours per share (yearly)',
-  value: 'Bridge aircraft value', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
-  leaseRate: 'Bridge dry-lease rate (per hour)', leaseMinRate: 'Bridge minimum dry-lease rate (per hour)', leaseHoursPerMonth: 'Bridge dry-lease hours (monthly average)',
+  purchasePrice: 'Bridge aircraft purchase price', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
+  leaseMonthly: 'Leasing Program monthly price', leaseIncludedHours: 'Leasing Program hours included per month',
+  leaseExtraHourRate: 'Leasing Program additional hour', leaseHourlyRate: 'Leasing Program hourly rate',
   yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to'
 };
 function fmt(field, v) {
   if (v === undefined) return '—';
   if (field === 'market') return v.generation ? v.generation + ' ' + v.yearFrom + '–' + v.yearTo : JSON.stringify(v);
   if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
-  if (['maxHours', 'leaseHoursPerMonth', 'yearFrom', 'yearTo'].includes(field)) return String(v);
+  if (['maxHours', 'leaseIncludedHours', 'yearFrom', 'yearTo'].includes(field)) return String(v);
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate' || field === 'commissionRate') return (v * 100).toFixed(2) + '%';
   if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
