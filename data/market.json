@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-05T19:43:24+00:00",
+  "checkedAt": "2026-10-07T17:50:19+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-04.3",
-  "feedListings": 366,
+  "feedListings": 368,
   "visionJetListings": 32,
   "excluded": {
     "sold or pending": 6,
