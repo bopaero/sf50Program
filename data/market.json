@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-07T17:50:19+00:00",
+  "checkedAt": "2026-10-09T17:27:40+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-04.3",
-  "feedListings": 368,
-  "visionJetListings": 32,
+  "feedListings": 374,
+  "visionJetListings": 33,
   "excluded": {
     "sold or pending": 6,
     "no price": 1,
@@ -163,8 +163,21 @@
         2021,
         2023
       ],
-      "count": 6,
+      "count": 7,
       "comparables": [
+        {
+          "registration": "N28VJ",
+          "serial": "0322",
+          "year": 2021,
+          "generation": "G2+",
+          "variation": "",
+          "hours": 1999,
+          "price": 2750000,
+          "modified": "2026-10-09",
+          "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-0322-n28vj/",
+          "certified": true,
+          "available": true
+        },
         {
           "registration": "N73SG",
           "serial": "0284",
@@ -244,8 +257,8 @@
           "available": true
         }
       ],
-      "median": 3049950.0,
-      "proposed": 3050000
+      "median": 2999900,
+      "proposed": 3000000
     },
     "G3": {
       "currentBase": 2850000,
@@ -270,7 +283,7 @@
       "program": "G2+",
       "field": "acquisition",
       "from": 3100000,
-      "to": 3050000
+      "to": 3000000
     }
   ],
   "declined": false
