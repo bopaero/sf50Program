@@ -33,6 +33,11 @@
     jetstream:        { min: 0,    max: 2e6 },
     closing:          { min: 0,    max: 1e6 },
     taxRate:          { min: 0,    max: 0.2 },
+    // Founder's Circle add-on (Raymond 2026-10-10): optional premium tier on a program's shares
+    activationRate:   { min: 0,    max: 0.5 },     // one-time fee, share of the share purchase
+    premiumRate:      { min: 0,    max: 2 },       // annual premium, share of the Annual Program Fee
+    reserveShare:     { min: 0,    max: 1 },       // share of each annual premium allocated to the liquidity reserve
+    positions:        { min: 0,    max: 30,     integer: true },   // Founder positions on a program
     commissionRate:   { min: 0,    max: 0.1 }      // sales commission, on aircraft acquisition value
   };
 
@@ -76,6 +81,11 @@
       if (split && p.acquisition !== undefined) errors.push(where + ' has both an acquisition value and base + options');
       if (split) { checkNumber(errors, where, 'basePrice', p.basePrice); checkNumber(errors, where, 'options', p.options); }
       else checkNumber(errors, where, 'acquisition', p.acquisition);
+      if (p.founders !== undefined) {
+        checkNumber(errors, where, 'positions', (p.founders || {}).positions);
+        if ((p.founders || {}).positions > p.shares) errors.push(where + ' has more Founder positions than shares available');
+        if (common.founders === undefined) errors.push(where + ' has Founder positions but common Founder settings are missing');
+      }
       if (p.features !== undefined) {
         var labels = c.featureLabels || {};
         Object.keys(p.features || {}).forEach(function (k) {
@@ -100,6 +110,9 @@
       }
     });
     if (!keys[c.baseline]) errors.push('baseline must name one of the programs');
+    if (common.founders !== undefined) {
+      ['activationRate', 'premiumRate', 'reserveShare'].forEach(function (f) { checkNumber(errors, 'common founders', f, (common.founders || {})[f]); });
+    }
     if (common.market !== undefined) {
       checkNumber(errors, 'common', 'roundTo', (common.market || {}).roundTo);
       checkNumber(errors, 'common', 'maxListingAgeDays', (common.market || {}).maxListingAgeDays);
@@ -126,6 +139,17 @@
       p.annualTotal    = common.fixedCost + p.management + p.reserve;
       p.annualFee      = p.annualTotal / p.shares;
       p.reserve5       = p.reserve * 5;
+      // Founder's Circle add-on: same share, plus a one-time activation fee and an annual premium;
+      // part of each premium seeds the liquidity reserve that bridges a Founder repurchase.
+      if (src.founders && common.founders) {
+        var fc = common.founders;
+        p.founderActivation   = p.capPerShare * fc.activationRate;
+        p.founderPremium      = p.annualFee * fc.premiumRate;
+        p.founderAnnualFee    = p.annualFee + p.founderPremium;
+        p.founderReserveYear  = p.founderPremium * fc.reserveShare;
+        p.founderReserve5     = p.founderActivation + 5 * p.founderReserveYear;
+        p.founderReservePct   = p.founderReserve5 / p.capPerShare;
+      }
       // Scheduling scales with the number of owners (Raymond 2026-10-02, proportional)
       p.schedulingHours = Math.round(common.aircraftHours / p.shares);
       p.schedulingDays  = Math.round(common.aircraftDays / p.shares);

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Founder's Circle Economic &amp; Marketing Summary — bop Aero (internal)</title>
+<!--
+  Internal. Served by the costing editor Worker behind Cloudflare Access (Raymond
+  2026-10-10). Replaces Founders_Circle_Economic_and_Marketing_Summary.docx: the
+  wording is carried over from it; every figure and rate is built here from the
+  SF50 and SR22T costings (each program's share price and Annual Program Fee, and
+  each costing's Founder's Circle settings, edited in the costing editors).
+-->
+<style>
+:root { --orange:#FF6700; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#f3f3f5; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; background:#eceef1; color:var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+header { position:sticky; top:0; background:#111; color:#fff; padding: calc(env(safe-area-inset-top,0px) + 10px) 16px 10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+header h1 { font-size:15px; margin:0 auto 0 0; }
+header a { color:#bbb; font-size:12px; }
+header button { font:inherit; font-size:13px; font-weight:700; border:0; border-radius:5px; padding:7px 12px; background:var(--orange); color:#fff; cursor:pointer; }
+.sheet { background:#fff; max-width: 8.5in; margin: 18px auto 40px; padding: 0.6in 0.65in; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+h2 { font-size: 22px; margin: 0 0 4px; }
+.built { color: var(--muted); font-size: 12px; margin: 0 0 16px; }
+h3 { font-size: 15px; margin: 22px 0 8px; border-bottom: 2px solid var(--orange); padding-bottom: 3px; }
+p, li { font-size: 13px; line-height: 1.45; }
+p { margin: 0 0 8px; }
+ul { margin: 0 0 8px; padding-left: 20px; }
+table { width:100%; border-collapse: collapse; font-size: 13px; margin: 6px 0 10px; }
+th, td { padding: 6px 8px; border-top: 1px solid var(--rule); text-align: right; }
+th { background: var(--stripe); font-size: 12px; }
+th:first-child, td:first-child { text-align: left; }
+tbody tr:nth-child(even) td { background: #fafafb; }
+.tw { overflow-x: auto; }
+.note { font-size: 12px; color: var(--muted); }
+.err { color:#b91c1c; font-weight:700; }
+@media (max-width: 640px) { .sheet { padding: 18px 14px; margin: 0; } }
+@page { size: letter; margin: 0.5in; }
+@media print {
+  body { background:#fff; } header { display:none; }
+  .sheet { box-shadow:none; margin:0; padding:0; max-width:none; }
+  h3 { break-after: avoid; } table { break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Founder's Circle Summary <span style="font-weight:normal;color:#bbb">· internal</span></h1>
+  <a href="/">SF50 editor</a><a href="/sr22t/">SR22T editor</a>
+  <button type="button" id="printBtn">Print / Save as PDF</button>
+  <span style="font-size:12px;color:#bbb">Signed in as {{USER}}</span>
+</header>
+<main class="sheet" id="sheet"><p>Loading both costings…</p></main>
+<script src="https://sf50program.bopaero.com/assets/costing.js"></script>
+<script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
+<script>
+(function () {
+  'use strict';
+  var SOURCES = [   // column order follows the original summary: SR22T, then SF50
+    { name: 'SR22T', api: '/sr22t/api/costing', lib: function () { return window.SR22TCosting; } },
+    { name: 'SF50',  api: '/api/costing',       lib: function () { return window.SF50Costing; } }
+  ];
+  document.getElementById('printBtn').addEventListener('click', function () { window.print(); });
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function pct(x) { return String(+(x * 100).toFixed(2)) + '%'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function getJson(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); }); }
+
+  Promise.all(SOURCES.map(function (s) { return getJson(s.api); })).then(function (res) {
+    var cols = [], versions = [];
+    res.forEach(function (r, i) {
+      var src = SOURCES[i], lib = src.lib();
+      if (!lib) throw new Error(src.name + ' costing.js did not load');
+      var problems = lib.validate(r.costing);
+      if (problems.length) throw new Error(src.name + ' costing is not valid: ' + problems.join('; '));
+      var d = lib.derive(r.costing);
+      versions.push(src.name + ' ' + d.version);
+      d.programs.forEach(function (p) {
+        if (p.founderAnnualFee !== undefined)
+          cols.push({ label: src.name + ' (' + p.key + ')', aircraft: src.name, p: p, fc: d.common.founders });
+      });
+    });
+    if (!cols.length) throw new Error('No program offers the Founder’s Circle add-on in either costing.');
+
+    // A rate shared by every column goes in the row label; otherwise beside each figure
+    function rateLabel(field) {
+      var vals = cols.map(function (c) { return c.fc[field]; });
+      return vals.every(function (v) { return v === vals[0]; }) ? ' (' + pct(vals[0]) + ')' : '';
+    }
+    function cell(c, value, field) {
+      var shared = field && rateLabel(field);
+      return money(value) + (field && !shared ? ' <span class="note">(' + pct(c.fc[field]) + ')</span>' : '');
+    }
+    function table(rows) {
+      return '<div class="tw"><table><thead><tr><th>Item</th>' + cols.map(function (c) { return '<th>' + esc(c.label) + '</th>'; }).join('') +
+        '</tr></thead><tbody>' + rows.map(function (r) {
+          return '<tr><td>' + r[0] + '</td>' + cols.map(function (c) { return '<td>' + r[1](c) + '</td>'; }).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>';
+    }
+    var reserveShares = cols.map(function (c) { return c.fc.reserveShare; });
+    var reserveText = reserveShares.every(function (v) { return v === reserveShares[0]; }) ? pct(reserveShares[0]) :
+      cols.map(function (c) { return pct(c.fc.reserveShare) + ' (' + c.aircraft + ')'; }).join(', ');
+    var activationText = rateLabel('activationRate').replace(/[() ]/g, '') || 'the';
+    var availability = cols.map(function (c) { return c.p.founders.positions + ' ' + c.aircraft + (cols.filter(function (x) { return x.aircraft === c.aircraft; }).length > 1 ? ' ' + c.p.key : ''); });
+    var availText = availability.length > 1 ? availability.slice(0, -1).join(', ') + ' and ' + availability[availability.length - 1] : availability[0];
+
+    var h =
+      '<h2>Founder’s Circle Economic &amp; Marketing Summary</h2>' +
+      '<p class="built">Built ' + esc(new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })) + ' from the published costing: ' + esc(versions.join(' · ')) + '. Internal.</p>' +
+      '<p><b>Purpose:</b> A concise framework for incorporating the Founder repurchase benefit into company economics and customer-facing materials.</p>' +
+      '<p>Founder’s Circle is an optional premium add-on. Availability is limited, but the economics must work even if only one owner elects the program on an aircraft.</p>' +
+
+      '<h3>1. Owner Pricing</h3>' +
+      '<p>A Founder buys the same aircraft share as any other owner, then elects the Founder’s Circle add-on.</p>' +
+      table([
+        ['Normal share purchase', function (c) { return money(c.p.capPerShare); }],
+        ['One-time Founder activation fee' + rateLabel('activationRate'), function (c) { return cell(c, c.p.founderActivation, 'activationRate'); }],
+        ['Base annual program fee', function (c) { return money(c.p.annualFee); }],
+        ['Annual Founder premium' + rateLabel('premiumRate'), function (c) { return cell(c, c.p.founderPremium, 'premiumRate'); }],
+        ['<b>Total annual Founder program fee</b>', function (c) { return '<b>' + money(c.p.founderAnnualFee) + '</b>'; }]
+      ]) +
+      '<p>Founder availability: up to ' + esc(availText) + ' owners may elect the add-on; unsold Founder positions do not create a reserve obligation.</p>' +
+
+      '<h3>2. Internal Liquidity Structure</h3>' +
+      '<ul><li>The one-time ' + esc(activationText) + ' Founder activation fee seeds the liquidity reserve.</li>' +
+      '<li>Approximately ' + esc(reserveText) + ' of each annual Founder premium is internally allocated to the liquidity reserve.</li>' +
+      '<li>The remaining Founder premium contributes to bop Aero revenue and supports the other premium benefits.</li>' +
+      '<li>The reserve remains bop Aero capital; it is an internal risk-management allocation, not an owner escrow or refundable account.</li></ul>' +
+      '<p><b>5-year illustration</b></p>' +
+      table([
+        ['One-time reserve seed', function (c) { return money(c.p.founderActivation); }],
+        ['Annual reserve allocation', function (c) { return money(c.p.founderReserveYear); }],
+        ['Approx. reserve after 5 years', function (c) { return money(c.p.founderReserve5); }],
+        ['Approx. % of share value', function (c) { return (c.p.founderReservePct * 100).toFixed(1) + '%'; }]
+      ]) +
+
+      '<h3>3. Founder Repurchase Benefit</h3>' +
+      '<ul><li><b>Minimum ownership period:</b> 12 months before a Founder may initiate a repurchase request.</li>' +
+      '<li><b>Notice:</b> Founder provides 180 days written notice.</li>' +
+      '<li><b>During notice:</b> Founder remains an owner and bop Aero may market the ownership position to a replacement buyer.</li>' +
+      '<li><b>At closing:</b> bop Aero repurchases the share at the defined Net Repurchase Value, based on then-current value under the final agreement.</li>' +
+      '<li>If liquidity allows, bop Aero may pay 100% at closing. Otherwise, a minimum cash payment applies and the balance is paid upon resale, subject to a defined outside repayment deadline.</li></ul>' +
+      '<p><b>Minimum Cash Payment by Tenure</b> — the minimum immediate payment increases with the Founder’s time in the program:</p>' +
+      '<div class="tw"><table><thead><tr><th>Time in Founder’s Circle at repurchase closing</th><th>Minimum cash payment</th></tr></thead><tbody>' +
+        [['12-24 months', '10%'], ['24-36 months', '12.5%'], ['36-48 months', '15%'], ['48-60 months', '17.5%'], ['60 months / end of aircraft cycle', '20%']]
+          .map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<p><b>Key economic principle:</b> the reserve is designed to bridge the period between a Founder exit and resale of the share - not to pre-fund the entire share purchase price.</p>' +
+
+      '<h3>4. Company Economics</h3>' +
+      '<ul><li>Each Founder add-on is self-supporting; the model does not assume every available Founder position will be sold.</li>' +
+      '<li>The principal economic risks are resale timing, market-value decline, carrying cost and simultaneous repurchase requests.</li>' +
+      '<li>Excess reserve may be released to unrestricted company capital when the required reserve declines or the repurchase exposure ends.</li>' +
+      '<li>The repurchase value should not automatically guarantee the owner’s original purchase price; the final agreement should use a defined current-value methodology.</li></ul>' +
+
+      '<h3>5. Customer-Facing Positioning</h3>' +
+      '<p><b>Founder’s Circle Enhanced Liquidity Benefit</b> - Founders receive a defined path to exit their ownership interest. After satisfying the minimum ownership period and providing 180 days notice, bop Aero will repurchase the ownership interest in accordance with the Founder Repurchase Program. The minimum cash payment increases with tenure, while bop Aero may pay a greater amount - including the full repurchase value - when liquidity permits. Any remaining balance is paid under the program’s resale and repayment provisions.</p>' +
+      '<p><b>Marketing note:</b> Describe this as an enhanced liquidity or repurchase benefit rather than “insurance” or an unconditional guaranteed cash buyback. Final customer language should match the executed agreement.</p>';
+    document.getElementById('sheet').innerHTML = h;
+  }).catch(function (e) {
+    document.getElementById('sheet').innerHTML = '<p class="err">Could not build the summary: ' + esc(e.message) + '</p>';
+  });
+})();
+</script>
+</body>
+</html>

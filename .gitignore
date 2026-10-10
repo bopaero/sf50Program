@@ -4,3 +4,4 @@
 # Built by the publish workflow into the deployed site
 /bop-Aero-SF50-Ownership-Program-Options.pdf
 .wrangler/
+admin/test/worker.mjs

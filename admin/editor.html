@@ -136,6 +136,9 @@ button.small { font-size:12px; padding:5px 10px; }
     ['closing', 'Acquisition / closing / setup', 'money'],
     ['taxRate', 'Estimated tax rate (on acquisition value)', 'pct'],
     ['commissionRate', 'Sales commission rate (on acquisition value; customers see it only inside the acquisition / closing cost)', 'pct'],
+    ['founders.activationRate', "Founder's Circle: one-time activation fee (share of the share price)", 'pct'],
+    ['founders.premiumRate', "Founder's Circle: annual premium (share of the Annual Program Fee)", 'pct'],
+    ['founders.reserveShare', "Founder's Circle: share of each premium allocated to the liquidity reserve", 'pct'],
     ['aircraftHours', 'Aircraft scheduling hours per year (divided among the shares)', 'int'],
     ['aircraftDays', 'Aircraft scheduling days per year (divided among the shares)', 'int']
   ];
@@ -149,6 +152,7 @@ button.small { font-size:12px; padding:5px 10px; }
     ['options', '  New: options & equipment', 'money', isNew],
     ['connectivityCost', 'Connectivity installation cost', 'money', function () { return true; }],
     ['management', 'bop Aero management (annual)', 'money', function () { return true; }],
+    ['founders.positions', "Founder's Circle positions", 'int', function (p) { return !!p.founders; }],
     ['reserve', 'Refresh / Future Value Reserve (annual)', 'money', function () { return true; }],
     ['approx', 'Approximate (pre-owned planning values)', 'bool', function () { return true; }],
     ['market.yearFrom', 'Market comparables: model year from', 'year', function (p) { return !!p.market; }],
@@ -241,10 +245,11 @@ button.small { font-size:12px; padding:5px 10px; }
   function build() {
     var cr = $('commonRows'); cr.innerHTML = '';
     COMMON_FIELDS.forEach(function (f) {
+      if (/^founders\./.test(f[0]) && !draft.common.founders) return;
       var tr = document.createElement('tr');
       tr.innerHTML = '<td>' + f[1] + (f[2] === 'pct' ? ' (%)' : f[2] === 'money' ? ' ($)' : '') + '</td><td></td>';
-      tr.lastChild.appendChild(input('c_' + f[0], f[2], draft.common[f[0]], function (v, el) {
-        draft.common[f[0]] = v; el.classList.toggle('changed', v !== published.common[f[0]]); refresh();
+      tr.lastChild.appendChild(input('c_' + f[0].replace(/\./g, '_'), f[2], getPath(draft.common, f[0]), function (v, el) {
+        setPath(draft.common, f[0], v); el.classList.toggle('changed', v !== getPath(published.common, f[0])); refresh();
       }));
       cr.appendChild(tr);
     });
@@ -282,7 +287,7 @@ button.small { font-size:12px; padding:5px 10px; }
   function changes() {
     var out = [];
     COMMON_FIELDS.forEach(function (f) {
-      var a = published.common[f[0]], b = draft.common[f[0]];
+      var a = getPath(published.common, f[0]), b = getPath(draft.common, f[0]);
       if (a !== b) out.push(f[1] + ': ' + fmt(f[2], a) + ' → ' + fmt(f[2], b));
     });
     draft.programs.forEach(function (p, i) {

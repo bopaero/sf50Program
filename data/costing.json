@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-04.3",
-  "publishedAt": "2026-10-04T22:54:15.057Z",
-  "note": "Sales commission added to the acquisition cost (rate 0% until the arrangement is agreed; no figures changed).",
+  "version": "v2026-10-10.1",
+  "publishedAt": "2026-10-10T18:13:15.044Z",
+  "note": "Founder's Circle settings added (5% activation, 25% annual premium, 50% of premium to the liquidity reserve; 2 G3 positions) so the Founder's Circle Summary is built from the costing. No program figures changed.",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -9,6 +9,11 @@
     "closing": 9500,
     "taxRate": 0.07,
     "commissionRate": 0,
+    "founders": {
+      "activationRate": 0.05,
+      "premiumRate": 0.25,
+      "reserveShare": 0.5
+    },
     "aircraftHours": 1400,
     "aircraftDays": 280,
     "market": {
@@ -96,6 +101,9 @@
       "approx": false,
       "shares": 8,
       "sharesRemaining": 8,
+      "founders": {
+        "positions": 2
+      },
       "basePrice": 2850000,
       "options": 835000,
       "connectivityCost": 0,

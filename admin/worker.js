@@ -26,6 +26,7 @@ import SF50Costing from '../assets/costing.js';
 import EDITOR_HTML from './editor.html';
 import SR22TCosting from '../../sr22tProgram/assets/costing.js';
 import SR22T_EDITOR_HTML from '../../sr22tProgram/admin/editor.html';
+import FOUNDERS_HTML from './founders.html';
 
 const COSTING_PATH = 'data/costing.json';
 
@@ -37,7 +38,8 @@ const AIRCRAFT = {
     lib: SF50Costing, html: EDITOR_HTML, site: 'https://sf50program.bopaero.com',
     common: ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays'],
     program: ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
-    programMarket: ['generation', 'yearFrom', 'yearTo']
+    programMarket: ['generation', 'yearFrom', 'yearTo'],
+    founders: ['activationRate', 'premiumRate', 'reserveShare']
   },
   sr22t: {
     prefix: '/sr22t', name: 'SR22T', repo: () => 'bopaero/sr22tProgram', token: env => env.GITHUB_TOKEN_SR22T || env.GITHUB_TOKEN,
@@ -49,7 +51,8 @@ const AIRCRAFT = {
     // Bridge aircraft: figures editable; model, comparables model/generation/variation
     // and its features are structural and carry over from the published costing.
     bridge: ['purchasePrice', 'monthlyLoan', 'monthlyInsurance', 'leaseMonthly', 'leaseIncludedHours', 'leaseExtraHourRate', 'leaseHourlyRate'],
-    bridgeMarket: ['yearFrom', 'yearTo']
+    bridgeMarket: ['yearFrom', 'yearTo'],
+    founders: ['activationRate', 'premiumRate', 'reserveShare']
   }
 };
 function aircraftFor(pathname) {
@@ -68,6 +71,10 @@ export default {
     }
 
     try {
+      // Founder's Circle Summary (internal): built in the browser from BOTH costings
+      if (request.method === 'GET' && url.pathname === '/founders') {
+        return new Response(FOUNDERS_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(AIRCRAFT.sf50, [AIRCRAFT.sr22t.site]) });
+      }
       const cfg = aircraftFor(url.pathname);
       const path = url.pathname.slice(cfg.prefix.length) || '/';
       if (cfg.prefix && url.pathname === cfg.prefix) return Response.redirect(url.origin + cfg.prefix + '/', 302);
@@ -257,7 +264,9 @@ const LABELS = {
   purchasePrice: 'Bridge aircraft purchase price', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
   leaseMonthly: 'Leasing Program monthly price', leaseIncludedHours: 'Leasing Program hours included per month',
   leaseExtraHourRate: 'Leasing Program additional hour', leaseHourlyRate: 'Leasing Program hourly rate',
-  yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to'
+  yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to',
+  activationRate: 'Founder activation fee', premiumRate: 'Founder annual premium', reserveShare: 'Founder premium share to reserve',
+  founders: "Founder's Circle positions"
 };
 function fmt(field, v) {
   if (v === undefined) return '—';
@@ -265,7 +274,8 @@ function fmt(field, v) {
   if (field === 'features') return Object.keys(v).map(k => k + ' ' + SF50Costing.featureText(v[k])).join('; ');
   if (['maxHours', 'leaseIncludedHours', 'yearFrom', 'yearTo'].includes(field)) return String(v);
   if (field === 'maxListingAgeDays') return String(v);
-  if (field === 'taxRate' || field === 'commissionRate') return (v * 100).toFixed(2) + '%';
+  if (field === 'taxRate' || field === 'commissionRate' || ['activationRate', 'premiumRate', 'reserveShare'].includes(field)) return (v * 100).toFixed(2) + '%';
+  if (field === 'founders') return v && typeof v.positions === 'number' ? String(v.positions) : '—';
   if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
@@ -277,6 +287,9 @@ function diff(a, b, cfg) {
     if (f === 'market') {
       for (const g of Object.keys(cm)) if (!same((a.common.market || {})[g], (b.common.market || {})[g]))
         out.push(LABELS[g] + ': ' + fmt(g, (a.common.market || {})[g]) + ' → ' + fmt(g, (b.common.market || {})[g]));
+    } else if (f === 'founders') {
+      for (const g of cfg.founders) if (!same((a.common.founders || {})[g], (b.common.founders || {})[g]))
+        out.push(LABELS[g] + ': ' + fmt(g, (a.common.founders || {})[g]) + ' → ' + fmt(g, (b.common.founders || {})[g]));
     } else if (!same(a.common[f], b.common[f])) out.push(LABELS[f] + ': ' + fmt(f, a.common[f]) + ' → ' + fmt(f, b.common[f]));
   }
   b.programs.forEach((p, i) => {
@@ -308,6 +321,7 @@ function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !
 // Rebuild each object field by field so nothing but known figures reaches the commit
 function cleanCommon(c, cfg) {
   const out = pick(c, cfg.common);
+  if (c && c.founders && cfg.founders) out.founders = pick(c.founders, cfg.founders);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
 }
@@ -326,6 +340,7 @@ function cleanBridge(b, cur, cfg) {
 function cleanProgram(p, cfg) {
   const out = pick(p, cfg.program);
   if (p && p.market && cfg.programMarket) out.market = pick(p.market, cfg.programMarket);
+  if (p && p.founders) out.founders = pick(p.founders, ['positions']);
   if (p && p.features) {
     out.features = {};
     for (const k of Object.keys(p.features)) {
@@ -354,7 +369,7 @@ function json(status, body) {
 function text(status, body) {
   return new Response(body, { status, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } });
 }
-function pageHeaders(cfg) {
+function pageHeaders(cfg, extraSites = []) {
   return {
     'Content-Type': 'text/html; charset=utf-8',
     'Cache-Control': 'no-store',
@@ -363,7 +378,7 @@ function pageHeaders(cfg) {
     'X-Robots-Tag': 'noindex, nofollow',
     'Content-Security-Policy': [
       "default-src 'none'",
-      "script-src 'unsafe-inline' " + cfg.site,
+      "script-src 'unsafe-inline' " + [cfg.site, ...extraSites].join(' '),
       "style-src 'unsafe-inline'",
       "connect-src 'self'",
       "frame-src " + cfg.site,
