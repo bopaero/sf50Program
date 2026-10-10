@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<!--
+  bop Aero — 2026 Cirrus SF50 Expo 1-Pager (for events and expos).
+  Rebuilt from Raymond's Pages 1-pager (Rev_6, single G3 program) on 2026-10-10,
+  now with all four programs, so it can't drift:
+  every program figure comes from data/costing.json through assets/costing.js,
+  like the program document. The PDF is generated on every publish.
+  Operating-cost estimates and aircraft specifications are wording, edited here.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>2026 Cirrus SF50 — Expo 1-Pager — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#efeff2; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #e9e9ec; color: var(--ink); font-family: Verdana, Tahoma, Arial, sans-serif; }
+.page { background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.42in 0.45in 0.3in; display:flex; flex-direction:column; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+.band { background: var(--orange); color:#fff; text-align:center; padding: 12px 16px 16px; }
+.band img { display:block; width: 150px; height:auto; margin: 0 auto 8px; }
+.band h1 { margin:0; font-size: 34px; letter-spacing: .14em; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,.25); }
+.band .sub { display:block; font-size: 13px; letter-spacing: .02em; margin-top: 4px; font-weight: bold; }
+.hero { display:block; width:100%; aspect-ratio: 2.9 / 1; object-fit: cover; }   /* four program rows need the height */
+table.programs th { font-size: 10px; color: var(--muted); text-align: right; border-top: 0; padding-bottom: 4px; }
+table.programs th:first-child { text-align: left; }
+table.programs td { text-align: right; font-weight: bold; font-size: 12.5px; }
+table.programs td:first-child { text-align: left; font-size: 12px; }
+table.programs td.kind { text-align: left; font-weight: normal; font-size: 10.5px; color: var(--muted); }
+h2 { text-align:center; font-size: 19px; letter-spacing: .22em; margin: 18px 0 8px; }
+table { width:100%; border-collapse: collapse; font-size: 11px; }
+td, th { padding: 7px 6px; border-top: 1px solid var(--rule); }
+tbody tr:nth-child(even) td { background: var(--stripe); }
+td:last-child { text-align:right; font-weight:bold; font-size: 12.5px; }
+.center { text-align:center; font-size: 11px; margin: 8px 0 0; }
+.notes { font-size: 8.5px; color: var(--muted); font-style: italic; line-height: 1.35; margin: 10px 0 0; padding-left: 4px; }
+.notes p { margin: 0 0 2px; }
+.foot { margin-top:auto; padding-top: 14px; display:grid; grid-template-columns: 1fr 1fr 1fr; font-weight:bold; letter-spacing:.38em; font-size: 10.5px; text-align:center; position:relative; }
+.foot .ver { position:absolute; right:0; bottom:-13px; letter-spacing:0; font-weight:normal; font-size: 8.5px; color: var(--muted); }
+.err { color:#b91c1c; padding: 20px; }
+@page { size: letter; margin: 0; }
+@media print {
+  body { background:#fff; }
+  .page { width: 8.5in; height: 11in; max-width:none; margin:0; box-shadow:none; overflow:hidden; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 640px) { .page { padding: 16px; } .band h1 { font-size: 24px; } .foot { grid-template-columns: 1fr; letter-spacing:.2em; gap:4px; } .foot .ver { position: static; } }
+</style>
+</head>
+<body>
+<main id="doc"><noscript><p class="err">This page needs JavaScript to display.</p></noscript></main>
+<script src="assets/costing.js"></script>
+<script>
+function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function words(n) {
+  var w = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen',
+           'sixteen','seventeen','eighteen','nineteen','twenty'][n];
+  return w ? w.charAt(0).toUpperCase() + w.slice(1) + ' (' + n + ')' : String(n);
+}
+function kv(rows) { return '<table><tbody>' + rows.map(function(r){ return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>'; }
+
+function render(costing) {
+  var problems = SF50Costing.validate(costing);
+  if (problems.length) throw new Error('Costing is not valid: ' + problems.join('; '));
+  var d = SF50Costing.derive(costing);
+  // G3 first, then the pre-owned programs from newest generation down
+  var order = ['G3', 'G2+', 'G2', 'G1'], progs = order.map(function(k){ return d.byKey[k]; }).filter(Boolean);
+  var html =
+    '<section class="page">' +
+      '<div class="band"><img src="assets/bop-aero-logo.svg" alt="bop Aero"><h1>2026 Cirrus SF50</h1>' +
+        '<span class="sub">New G3 and pre-owned G2+, G2 and G1 ownership programs</span></div>' +
+      '<img class="hero" src="assets/sf50-n867ca-hero.jpg" alt="Cirrus Vision Jet N867CA in flight over a mountain lake">' +
+      '<h2>Program Economics</h2>' +
+      '<table class="programs"><thead><tr><th>Program</th><th></th><th>Owner Equity Investment (per share)</th><th>Projected Annual Program Fee*</th><th>Shares</th></tr></thead><tbody>' +
+      progs.map(function(p){
+        return '<tr><td>' + esc(p.key) + '</td><td class="kind">' + (p.basePrice !== undefined ? 'New' : 'Pre-owned') + '</td><td>' +
+          (p.approx ? '~' : '') + money(p.capPerShare) + '</td><td>~' + money(p.annualFee) + '</td><td>' + p.shares + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<p class="center">Operational costs such as consumables, crew, etc. not included**</p>' +
+      '<div class="notes">' +
+        '<p>~ Pre-owned program figures are planning values, finalized from the selected aircraft.</p>' +
+        '<p>* Subject to change annually due to material and supply chain constraints. Founder\u2019s Circle fees are fixed. For more information, visit bopaero.com/the-founders-circle-invite</p>' +
+        '<p>** Fuel/Oil costs average ~$375 flight hr.</p>' +
+        '<p>** Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from $1500-$2500 per day + expenses are good estimates for planning purposes.</p>' +
+      '</div>' +
+      '<h2 style="margin-top:22px">Aircraft Specifications</h2>' +
+      kv([
+        ['Maximum Speed (no wind)', '358 mph @ 31000 ft'],
+        ['Maximum Range (no wind) @ Max Endurance (Cabin Payload ~500 lbs<sup>2</sup>)', '1467 mi<sup>1</sup> @ 31000 ft'],
+        ['Maximum Cabin Payload (~3-hour flight/~1050 mi)<sup>1,2</sup>', '1350 lbs'],
+        ['Maximum Occupancy (including pilot)<sup>3</sup>', '7(6)']
+      ]) +
+      '<div class="notes">' +
+        '<p><sup>1</sup> Statute Miles.</p>' +
+        '<p><sup>2</sup> Maximum Cabin Payload can vary with flight length and fuel requirements.</p>' +
+        '<p><sup>3</sup> Maximum Occupancy is published as seven (7) persons. However, six (6) adults should be considered a realistic maximum.</p>' +
+      '</div>' +
+      '<footer class="foot"><span>bopaero.com</span><span>(513) 450-2FLY</span><span>info@bopaero.com</span><span class="ver">' + esc(d.version) + '</span></footer>' +
+    '</section>';
+  document.getElementById('doc').innerHTML = html;
+  document.documentElement.setAttribute('data-rendered', d.version);   // build-pdf.py waits for this
+}
+fetch('data/costing.json', { cache: 'no-cache' })
+  .then(function(r){ if (!r.ok) throw new Error('costing HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch(function(err){
+    document.getElementById('doc').innerHTML = '<p class="err">This page could not be displayed. ' + esc(err.message || err) + '</p>';
+    document.documentElement.setAttribute('data-render-error', String(err.message || err));
+  });
+</script>
+</body>
+</html>
