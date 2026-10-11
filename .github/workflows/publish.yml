@@ -1,29 +1,38 @@
 name: Publish
 
-# TEMPORARY, this branch only: builds the PDFs on Ubuntu 24.04 and 26.04 and compares
-# each with the archived copy. Deploys nothing, commits nothing, never runs on main.
+# Every push to main (a costing publish from the editor, or a wording change)
+# rebuilds the PDF from the page and deploys the site and the PDF TOGETHER, so
+# the site can never show new figures beside an old PDF.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write     # archive versions/<version>.pdf
+  pages: write
+  id-token: write
 
 concurrency:
-  group: publish-os-trial
-  cancel-in-progress: true
+  group: publish
+  cancel-in-progress: true   # the newest push contains every earlier change
 
 jobs:
   publish:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, ubuntu-26.04]
-    runs-on: ${{ matrix.os }}
+    # Pinned, not ubuntu-latest: the PDF is rendered by this image's Chrome with the
+    # Arial fonts installed below, and the build refuses to publish if the pages come
+    # out differently. Moved from 24.04 to 26.04 on 2026-10-10 after a side-by-side
+    # trial: both built the same pages, text and fonts as the archived PDFs, with no
+    # pixel differences. Move up the same way next time: build on the new version on
+    # a branch, compare with the archive, then change this line.
+    runs-on: ubuntu-26.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Install PDF tools and fonts
-        continue-on-error: true
         run: |
           echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | sudo debconf-set-selections
           sudo apt-get update -qq
@@ -32,15 +41,30 @@ jobs:
           fc-list | grep -qi "arial" || { echo "Arial missing — layout would not match"; exit 1; }
 
       - name: Assemble site
-        continue-on-error: true
         run: |
           mkdir _site
           cp -r index.html expo.html CNAME robots.txt assets data versions _site/
 
-      - name: Build PDF
-        continue-on-error: true
-        run: python3 tools/build-pdf.py --out _site 2>&1 | tee build.log; test ${PIPESTATUS[0]} -eq 0 || echo "::notice title=Build on ${{ matrix.os }}::BUILD FAILED%0A$(tail -c 1500 build.log | sed 's/%/%25/g' | tr '\n' '~' | sed 's/~/%0A/g')"
+      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet, versioned, clean)
+        run: python3 tools/build-pdf.py --out _site
 
-      - name: Compare with the archived PDFs
-        if: always()
-        run: python3 tools/os_trial_compare.py || true
+      - name: Archive this version's PDF
+        run: |
+          v=$(python3 -c "import json;print(json.load(open('data/costing.json'))['version'])")
+          if [ ! -f "versions/$v.pdf" ]; then
+            cp "_site/bop-Aero-SF50-Ownership-Program-Options.pdf" "versions/$v.pdf"
+            cp "versions/$v.pdf" _site/versions/
+            cp "_site/bop-Aero-SF50-Expo-1-Pager.pdf" "versions/$v-expo.pdf"
+            cp "versions/$v-expo.pdf" _site/versions/
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add "versions/$v.pdf" "versions/$v-expo.pdf"
+            git commit -m "Archive $v PDF [skip ci]"
+            git push
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deploy
+        uses: actions/deploy-pages@v4
