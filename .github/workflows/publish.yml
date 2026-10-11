@@ -21,10 +21,11 @@ jobs:
   publish:
     # Pinned, not ubuntu-latest: the PDF is rendered by this image's Chrome with the
     # Arial fonts installed below, and the build refuses to publish if the pages come
-    # out differently. ubuntu-latest starts moving to Ubuntu 26 on 2026-10-19, which
-    # would change both on a day nobody chose. Move up deliberately: set the new
-    # version on a branch, run Publish by hand, compare the PDF, then merge.
-    runs-on: ubuntu-24.04
+    # out differently. Moved from 24.04 to 26.04 on 2026-10-10 after a side-by-side
+    # trial: both built the same pages, text and fonts as the archived PDFs, with no
+    # pixel differences. Move up the same way next time: build on the new version on
+    # a branch, compare with the archive, then change this line.
+    runs-on: ubuntu-26.04
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
