@@ -40,7 +40,7 @@ const AIRCRAFT = {
     program: ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
     programMarket: ['generation', 'yearFrom', 'yearTo'],
     founders: ['activationRate', 'premiumRate', 'reserveShare'],
-    operating: ['fuelPerHour', 'pilotDayMin', 'pilotDayMax']
+    operating: ['fuelPerHour', 'pilotDayMin', 'pilotDayMax', 'trainingMin', 'trainingMax']
   },
   sr22t: {
     prefix: '/sr22t', name: 'SR22T', repo: () => 'bopaero/sr22tProgram', token: env => env.GITHUB_TOKEN_SR22T || env.GITHUB_TOKEN,
@@ -272,7 +272,8 @@ const LABELS = {
   yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to',
   activationRate: 'Founder activation fee', premiumRate: 'Founder annual premium', reserveShare: 'Founder premium share to reserve',
   founders: "Founder's Circle positions",
-  fuelPerHour: 'Fuel/oil estimate per flight hour', pilotDayMin: 'Pilot day rate estimate (from)', pilotDayMax: 'Pilot day rate estimate (to)'
+  fuelPerHour: 'Fuel/oil estimate per flight hour', pilotDayMin: 'Pilot day rate estimate (from)', pilotDayMax: 'Pilot day rate estimate (to)',
+  trainingMin: 'Type training estimate (from)', trainingMax: 'Type training estimate (to)'
 };
 function fmt(field, v) {
   if (v === undefined) return '—';

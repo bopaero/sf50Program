@@ -54,3 +54,13 @@ Raymond's Pages 1-pager on 2026-10-10. Program figures come from the costing lik
 the document; operating-cost estimates and aircraft specifications are wording in
 `expo.html`. The Publish workflow builds it with the document (fails unless exactly
 1 page with the version stamp) and archives `versions/<version>-expo.pdf`.
+
+## Financial Detail Sheet
+
+`financial.html` → `bop-Aero-SF50-Financial-Detail-Sheet.pdf` (2 Letter pages), rebuilt
+2026-10-13 from Raymond's Pages sheet (Rev_6, the G3 program). The G3 owner investment
+and its per-share breakdown, the Annual Program Fee, the Founder's Circle premium and
+positions, and the fuel/pilot/type-training estimates (`common.operating`) all come from
+the costing; footnote and contact wording is edited in `financial.html`. Publish builds it
+(fails unless exactly 2 pages, each version-stamped) and archives
+`versions/<version>-financial.pdf`.

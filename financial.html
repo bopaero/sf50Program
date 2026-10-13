@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<!--
+  bop Aero — 2026 Cirrus SF50 Program Economics (Financial Detail Sheet, 2 pages).
+  Rebuilt from Raymond's Pages sheet (Rev_6, single G3 program) on 2026-10-13 so it
+  can't drift: the G3 owner investment and its breakdown, the Annual Program Fee,
+  the Founder's Circle premium and positions, and the operating and type-training
+  estimates all come from data/costing.json through assets/costing.js. Footnote and
+  contact wording is edited here. The PDF is generated on every publish.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>2026 Cirrus SF50 Program Economics — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#efeff2; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #e9e9ec; color: var(--ink); font-family: Verdana, Tahoma, Arial, sans-serif; }
+.page { background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.42in 0.45in 0.3in; display:flex; flex-direction:column; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+.band { background: var(--orange); color:#fff; text-align:center; padding: 12px 16px 14px; }
+.band img { display:block; width: 140px; height:auto; margin: 0 auto 6px; }
+.band h1 { margin:0; font-size: 22px; letter-spacing: .16em; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,.25); }
+.hero { display:block; width:100%; aspect-ratio: 1413 / 640; object-fit: cover; }
+h2 { text-align:center; font-size: 15px; font-weight: bold; margin: 26px 0 10px; }
+.row { display:flex; justify-content:space-between; align-items:baseline; padding: 6px 6px; font-size: 12px; border-top: 1px solid var(--rule); }
+.row.alt { background: var(--stripe); }
+.row b { font-size: 14px; }
+.center { text-align:center; font-size: 11px; margin: 4px 0 10px; }
+.detail { margin: 6px 0 0 52px; border-left: 1px solid #222; }
+.detail h4 { text-align:center; font-size: 12.5px; margin: 10px 0 6px; }
+.detail .sub { padding-left: 120px; font-style: italic; color: #333; }
+.detail .sub > span { flex: 1; text-align: right; padding-right: 24px; }
+.detail .sub b { font-weight: normal; font-style: italic; font-size: 12.5px; }
+.desc { font-style: italic; color: #555; font-size: 10.5px; padding: 4px 6px 6px; background: var(--stripe); }
+.stars { text-align:center; letter-spacing: .4em; margin: 22px 0 2px; font-weight: bold; }
+.contact { display:grid; grid-template-columns: 2.3in 1fr; gap: 14px; margin-top: auto; align-items: end; }
+.contact + .foot { margin-top: 0; padding-top: 22px; }   /* the card sits on the footer, as on Rev_6 */
+.card img { display:block; width:100%; aspect-ratio: 1 / 1; object-fit: cover; }
+.card .who { background: var(--orange); color:#fff; font-weight:bold; font-size: 12px; line-height: 1.45; padding: 12px 14px 14px; }
+.card .who .name { font-size: 16px; }
+.card .who p { margin: 0 0 10px; }
+.card .who p:last-child { margin: 0; }
+.notes { font-size: 8.3px; color: var(--muted); font-style: italic; line-height: 1.35; }
+.notes p { margin: 0 0 3px; }
+sup { font-size: 65%; }
+.foot { margin-top:auto; padding-top: 12px; display:grid; grid-template-columns: 1fr 1fr 1fr; font-weight:bold; letter-spacing:.38em; font-size: 10.5px; text-align:center; position:relative; }
+.foot .ver { position:absolute; right:0; bottom:-13px; letter-spacing:0; font-weight:normal; font-size: 8.5px; color: var(--muted); }
+.err { color:#b91c1c; padding: 20px; }
+@page { size: letter; margin: 0; }
+@media print {
+  body { background:#fff; }
+  .page { width: 8.5in; height: 11in; max-width:none; margin:0; box-shadow:none; overflow:hidden; break-after: page; }
+  .page:last-child { break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 640px) { .page { padding: 16px; } .detail { margin-left: 12px; } .detail .sub { padding-left: 16px; } .contact { grid-template-columns: 1fr; } .foot { grid-template-columns: 1fr; letter-spacing:.2em; gap:4px; } .foot .ver { position: static; } }
+</style>
+</head>
+<body>
+<main id="doc"><noscript><p class="err">This page needs JavaScript to display.</p></noscript></main>
+<script src="assets/costing.js"></script>
+<script>
+function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function thousands(n) { return '$' + Math.round(n / 1000) + 'k'; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function words(n) {
+  var w = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen',
+           'sixteen','seventeen','eighteen','nineteen','twenty'][n];
+  return w ? w.charAt(0).toUpperCase() + w.slice(1) + ' (' + n + ')' : String(n);
+}
+function opCosts(common) {   // operating and type-training estimates live in the costing (common.operating)
+  var o = common.operating;
+  if (!o) throw new Error('The costing has no operating-cost estimates (common.operating).');
+  if (o.trainingMin === undefined) throw new Error('The costing has no type-training estimate (common.operating.trainingMin/Max).');
+  return { fuel: money(o.fuelPerHour), pilot: money(o.pilotDayMin) + '-' + money(o.pilotDayMax),
+           training: thousands(o.trainingMin) + ' - ' + thousands(o.trainingMax) };
+}
+function row(label, value, cls) { return '<div class="row' + (cls ? ' ' + cls : '') + '"><span>' + label + '</span><b>' + value + '</b></div>'; }
+function foot(version) {
+  return '<footer class="foot"><span>bopaero.com</span><span>(513) 450-2FLY</span><span>info@bopaero.com</span><span class="ver">' + esc(version) + '</span></footer>';
+}
+
+function render(costing) {
+  var problems = SF50Costing.validate(costing);
+  if (problems.length) throw new Error('Costing is not valid: ' + problems.join('; '));
+  var d = SF50Costing.derive(costing), p = d.byKey.G3, op = opCosts(d.common);
+  if (!p) throw new Error('The costing has no G3 program.');
+  var n = p.shares;
+  // Per-share breakdown, rounded so the lines add up to the rounded investment;
+  // the acquisition line carries closing, connectivity and commission (commission is never its own line)
+  var invest = Math.round(p.capPerShare), retail = Math.round(p.acquisition / n), tax = Math.round(p.tax / n),
+      jet = Math.round(d.common.jetstream / n), acq = invest - retail - tax - jet;
+  var fc = p.founders && p.founderPremium !== undefined;
+
+  var page1 =
+    '<section class="page">' +
+      '<div class="band"><img src="assets/bop-aero-logo.svg" alt="bop Aero"><h1>2026 Cirrus SF50 Program Economics</h1></div>' +
+      '<img class="hero" src="assets/sf50-n867ca-hero.jpg" alt="Cirrus Vision Jet N867CA in flight over a mountain lake">' +
+      '<h2>Aircraft Equity Details</h2>' +
+      row('Owner Equity Investment (per share)', money(invest) + '<sup>1</sup>') +
+      row('Projected Annual Program Fee*', '~' + money(p.annualFee), 'alt') +
+      '<p class="center">Operational costs such as consumables, crew, etc. not included**</p>' +
+      '<div class="detail">' +
+        '<h4>Aircraft Equity Details (per Share)</h4>' +
+        row('Owner Equity Investment', money(invest) + '<sup>1</sup>') +
+        row('Cirrus SF50 G3 Retail Price', money(retail), 'sub alt') +
+        row('Estimated Taxes<sup>2</sup>', money(tax), 'sub') +
+        row('Cirrus JetStream Program (Warranty)', money(jet), 'sub alt') +
+        row('bop Aero Program Acquisition Costs<sup>3</sup>', money(acq), 'sub') +
+      '</div>' +
+      '<div class="stars">* * *</div>' +
+      foot(d.version) +
+    '</section>';
+
+  var page2 =
+    '<section class="page">' +
+      '<div class="detail" style="margin-top:0">' +
+        '<h4>Annual Program Fee Details</h4>' +
+        row('Projected Annual Program Fee*', '~' + money(p.annualFee)) +
+        '<div class="desc">Insurance, Storage, Maintenance, Cleaning &amp; Detailing, Internet &amp; Flight Data Subscriptions,<br>Management fee, Future Value Reserve.</div>' +
+      '</div>' +
+      '<div class="stars">* * *</div>' +
+      '<h2>Optional Programs &amp; Training Costs</h2>' +
+      (fc ? row('Founder’s Circle (per Share, billed annually)<sup>4</sup>', money(p.founderPremium)) : '') +
+      row('Cirrus SF50 Type Training (for Owner-Pilots)<sup>5</sup>', '~' + op.training, 'alt') +
+      '<div class="stars">* * *</div>' +
+      '<div class="contact">' +
+        '<div class="card"><img src="assets/raymond-chase.jpg" alt="Raymond Chase">' +
+          '<div class="who"><p><span class="name">Raymond Chase</span><br>President &amp; CEO<br>859.419.8645<br>raymond@bopaero.com</p>' +
+          '<p>Cincinnati West Airport<br>Hangar 27<br>10030 West Rd<br>Harrison, OH 45030</p></div></div>' +
+        '<div class="notes">' +
+          '<p>* Subject to change annually due to material and supply chain constraints. Founder’s Circle fees are fixed.</p>' +
+          '<p>** Fuel/Oil costs average ~' + op.fuel + ' per flight hr and are subject to market fluctuations. Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from ' + op.pilot + ' per day + expenses are good estimates for planning purposes.</p>' +
+          '<p><sup>1</sup> Acquisition costs such as taxes, warranties, and legal registrations are estimated and included as part of the price.</p>' +
+          '<p><sup>2</sup> Taxes vary from state to state and county to county. Taxes will be calculated based on the location that aircraft is based.</p>' +
+          '<p><sup>3</sup> Acquisition costs borne by bop Aero to set up and manage each program aircraft.</p>' +
+          (fc ? '<p><sup>4</sup> ' + words(p.founders.positions) + ' Shares reserved for Founder’s Circle Program per aircraft.</p>' : '') +
+          '<p><sup>5</sup> Cirrus SF50 Type training costs can vary. bop Aero’s preferred SF50 training provider is Elite Aircraft Services (Elite) in Sanford, NC, for initial and recurrent type training. Please call for details.</p>' +
+        '</div>' +
+      '</div>' +
+      foot(d.version) +
+    '</section>';
+
+  document.getElementById('doc').innerHTML = page1 + page2;
+  document.documentElement.setAttribute('data-rendered', d.version);   // build-pdf.py waits for this
+}
+fetch('data/costing.json', { cache: 'no-cache' })
+  .then(function(r){ if (!r.ok) throw new Error('costing HTTP ' + r.status); return r.json(); })
+  .then(render)
+  .catch(function(err){
+    document.getElementById('doc').innerHTML = '<p class="err">This page could not be displayed. ' + esc(err.message || err) + '</p>';
+    document.documentElement.setAttribute('data-render-error', String(err.message || err));
+  });
+</script>
+</body>
+</html>

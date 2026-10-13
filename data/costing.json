@@ -1,7 +1,7 @@
 {
-  "version": "v2026-10-13.1",
-  "publishedAt": "2026-10-13T18:49:13.275Z",
-  "note": "Operating-cost estimates moved into the costing (fuel/oil ~$375 per flight hour; contract pilot $1,500-$2,500 per day) so every sheet quotes the same figures. No program figures changed.",
+  "version": "v2026-10-13.2",
+  "publishedAt": "2026-10-13T20:00:00.000Z",
+  "note": "SF50 type-training estimate moved into the costing (~$18,000-$35,000, from the Financial Detail Sheet Rev_6) so the generated Financial Detail Sheet quotes it. No program figures changed.",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
@@ -12,7 +12,9 @@
     "operating": {
       "fuelPerHour": 375,
       "pilotDayMin": 1500,
-      "pilotDayMax": 2500
+      "pilotDayMax": 2500,
+      "trainingMin": 18000,
+      "trainingMax": 35000
     },
     "founders": {
       "activationRate": 0.05,

@@ -43,9 +43,9 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          cp -r index.html expo.html CNAME robots.txt assets data versions _site/
+          cp -r index.html expo.html financial.html CNAME robots.txt assets data versions _site/
 
-      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet, versioned, clean)
+      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheet, versioned, clean)
         run: python3 tools/build-pdf.py --out _site
 
       - name: Archive this version's PDF
@@ -56,9 +56,11 @@ jobs:
             cp "versions/$v.pdf" _site/versions/
             cp "_site/bop-Aero-SF50-Expo-1-Pager.pdf" "versions/$v-expo.pdf"
             cp "versions/$v-expo.pdf" _site/versions/
+            cp "_site/bop-Aero-SF50-Financial-Detail-Sheet.pdf" "versions/$v-financial.pdf"
+            cp "versions/$v-financial.pdf" _site/versions/
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add "versions/$v.pdf" "versions/$v-expo.pdf"
+            git add "versions/$v.pdf" "versions/$v-expo.pdf" "versions/$v-financial.pdf"
             git commit -m "Archive $v PDF [skip ci]"
             git push
           fi

@@ -172,4 +172,14 @@ check('operating estimates publish + listed', r.status === 200 && c3.common.oper
 const opb = structuredClone(base); opb.common.operating.pilotDayMin = 3000;
 r = await call('/api/publish', { token: T, method: 'POST', body: { costing: opb, sha, note: 'x' } });
 check('pilot range backwards → 400', r.status === 400 && /range runs backwards/.test(r.t), r.t);
+const trx = structuredClone(base); trx.common.operating.trainingMax = 40000;
+r = await call('/api/publish', { token: T, method: 'POST', body: { costing: trx, sha, note: 'training estimate' } });
+c3 = JSON.parse(Buffer.from(lastPut.content, 'base64').toString());
+check('type training estimate publishes + listed', r.status === 200 && c3.common.operating.trainingMax === 40000 && /Type training estimate \(to\): \$35,000 → \$40,000/.test(lastPut.message), lastPut.message);
+const trb = structuredClone(base); trb.common.operating.trainingMin = 50000;
+r = await call('/api/publish', { token: T, method: 'POST', body: { costing: trb, sha, note: 'x' } });
+check('type training range backwards → 400', r.status === 400 && /type training range runs backwards/.test(r.t), r.t);
+const trh = structuredClone(base); delete trh.common.operating.trainingMax;
+r = await call('/api/publish', { token: T, method: 'POST', body: { costing: trh, sha, note: 'x' } });
+check('half a type training range → 400', r.status === 400 && /trainingMax must be a number/.test(r.t), r.t);
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

@@ -42,6 +42,8 @@
     fuelPerHour:      { min: 0,    max: 5000 },    // average fuel/oil(/TKS) cost per flight hour
     pilotDayMin:      { min: 0,    max: 20000 },   // contract pilot day rate, low end
     pilotDayMax:      { min: 0,    max: 20000 },
+    trainingMin:      { min: 0,    max: 200000 },  // SF50 type training for owner-pilots, low end (optional)
+    trainingMax:      { min: 0,    max: 200000 },
     commissionRate:   { min: 0,    max: 0.1 }      // sales commission, on aircraft acquisition value
   };
 
@@ -118,6 +120,10 @@
       var op = common.operating || {};
       ['fuelPerHour', 'pilotDayMin', 'pilotDayMax'].forEach(function (f) { checkNumber(errors, 'common operating', f, op[f]); });
       if (op.pilotDayMin > op.pilotDayMax) errors.push('common operating pilot day rate range runs backwards');
+      if (op.trainingMin !== undefined || op.trainingMax !== undefined) {
+        ['trainingMin', 'trainingMax'].forEach(function (f) { checkNumber(errors, 'common operating', f, op[f]); });
+        if (op.trainingMin > op.trainingMax) errors.push('common operating type training range runs backwards');
+      }
     }
     if (common.founders !== undefined) {
       ['activationRate', 'premiumRate', 'reserveShare'].forEach(function (f) { checkNumber(errors, 'common founders', f, (common.founders || {})[f]); });

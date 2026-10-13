@@ -31,7 +31,11 @@ EXPECTED_PAGES = 9
 # it is rebuilt from the costing on every publish, like the document.
 PDF_NAME = 'bop-Aero-SF50-Ownership-Program-Options.pdf'
 EXPO_PDF = 'bop-Aero-SF50-Expo-1-Pager.pdf'
-DOCS = [('index.html', PDF_NAME, EXPECTED_PAGES), ('expo.html', EXPO_PDF, 1)]
+FINANCIAL_PDF = 'bop-Aero-SF50-Financial-Detail-Sheet.pdf'
+# (page, PDF file, exact pages, archive suffix in versions/). The Financial Detail
+# Sheet was added 2026-10-13 (rebuilt from Raymond's Rev_6).
+DOCS = [('index.html', PDF_NAME, EXPECTED_PAGES, ''), ('expo.html', EXPO_PDF, 1, '-expo'),
+        ('financial.html', FINANCIAL_PDF, 2, '-financial')]
 MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 
@@ -80,7 +84,7 @@ def main():
     version = json.load(open(os.path.join(REPO, 'data', 'costing.json')))['version']
 
     built, problems = [], []
-    for page, name, expected in DOCS:
+    for page, name, expected, suffix in DOCS:
         tmp = os.path.join(tempfile.mkdtemp(), name)
         render(tmp, page)
         pages = page_count(tmp)
@@ -97,17 +101,16 @@ def main():
         if leaks:
             bad.append('rendering errors in text: ' + ', '.join(leaks))
         problems += ['%s: %s (render kept at %s)' % (page, b, tmp) for b in bad]
-        built.append((name, tmp, pages))
+        built.append((name, tmp, pages, suffix))
     if problems:
         sys.exit('NOT WRITTEN — ' + '; '.join(problems))
 
-    for name, tmp, pages in built:
+    for name, tmp, pages, suffix in built:
         print('OK  %s  %s  %d page%s  %s bytes' % (version, name, pages, '' if pages == 1 else 's', format(os.path.getsize(tmp), ',')))
     if check_only:
         print('    --check: nothing written')
         return
-    for name, tmp, pages in built:
-        suffix = '' if name == PDF_NAME else '-expo'
+    for name, tmp, pages, suffix in built:
         targets = ([os.path.join(out_dir, name)] if out_dir else
                    [os.path.join(REPO, name), os.path.join(REPO, 'versions', version + suffix + '.pdf')])
         for t in targets:
