@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-11T16:39:26+00:00",
+  "checkedAt": "2026-10-13T18:20:22+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-10.1",
-  "feedListings": 374,
+  "feedListings": 376,
   "visionJetListings": 33,
   "excluded": {
     "sold or pending": 6,
@@ -72,7 +72,7 @@
         2019,
         2021
       ],
-      "count": 6,
+      "count": 7,
       "comparables": [
         {
           "registration": "N473MM",
@@ -85,6 +85,19 @@
           "modified": "2026-10-02",
           "link": "https://lonemountainaircraft.com/inventory/n473mm/",
           "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N79BK",
+          "serial": "0138",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "Premium",
+          "hours": 2450,
+          "price": 2399995,
+          "modified": "2026-10-13",
+          "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-premium-0138-n79bk/",
+          "certified": true,
           "available": true
         },
         {
@@ -153,8 +166,8 @@
           "available": true
         }
       ],
-      "median": 2650000.0,
-      "proposed": 2650000
+      "median": 2600000,
+      "proposed": 2600000
     },
     "G2+": {
       "current": 3100000,
@@ -163,7 +176,7 @@
         2021,
         2023
       ],
-      "count": 7,
+      "count": 6,
       "comparables": [
         {
           "registration": "N28VJ",
@@ -242,22 +255,9 @@
           "link": "https://aerista.com/showroom/n696my/",
           "certified": false,
           "available": true
-        },
-        {
-          "registration": "N1607L",
-          "serial": "0456",
-          "year": 2023,
-          "generation": "G2+",
-          "variation": "Arriv\u00e9e",
-          "hours": 482,
-          "price": 3200000,
-          "modified": "2026-09-10",
-          "link": "https://cirrusaircraft.com/aircraft-listings/n1607l/",
-          "certified": true,
-          "available": true
         }
       ],
-      "median": 2999900,
+      "median": 2999900.0,
       "proposed": 3000000
     },
     "G3": {
@@ -272,12 +272,6 @@
       "field": "acquisition",
       "from": 1900000,
       "to": 1800000
-    },
-    {
-      "program": "G2",
-      "field": "acquisition",
-      "from": 2600000,
-      "to": 2650000
     },
     {
       "program": "G2+",
