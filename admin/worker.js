@@ -50,7 +50,8 @@ const AIRCRAFT = {
     programMarket: null,
     // Bridge aircraft: figures editable; model, comparables model/generation/variation
     // and its features are structural and carry over from the published costing.
-    bridge: ['purchasePrice', 'monthlyLoan', 'monthlyInsurance', 'leaseMonthly', 'leaseIncludedHours', 'leaseExtraHourRate', 'leaseHourlyRate'],
+    bridge: ['purchasePrice', 'monthlyLoan', 'monthlyInsurance', 'leaseMonthly', 'leaseIncludedHours', 'leaseExtraHourRate', 'leaseHourlyRate',
+             'acquisitionCosts', 'engineReserve', 'annualProgramTotal'],
     bridgeMarket: ['yearFrom', 'yearTo'],
     founders: ['activationRate', 'premiumRate', 'reserveShare']
   }
@@ -264,6 +265,8 @@ const LABELS = {
   purchasePrice: 'Bridge aircraft purchase price', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
   leaseMonthly: 'Leasing Program monthly price', leaseIncludedHours: 'Leasing Program hours included per month',
   leaseExtraHourRate: 'Leasing Program additional hour', leaseHourlyRate: 'Leasing Program hourly rate',
+  acquisitionCosts: 'Post-pay acquisition costs (all shares)', engineReserve: 'Post-pay Engine/Powerplant Reserve (all shares)',
+  annualProgramTotal: 'Post-pay bridge annual program requirement (all shares)',
   yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to',
   activationRate: 'Founder activation fee', premiumRate: 'Founder annual premium', reserveShare: 'Founder premium share to reserve',
   founders: "Founder's Circle positions"
