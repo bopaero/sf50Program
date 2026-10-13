@@ -165,4 +165,11 @@ check('commit lists Founder changes', /Founder annual premium: 25\.00% → 30\.0
 const fbad = structuredClone(base); fbad.programs[3].founders.positions = 9;
 r = await call('/api/publish', { token: T, method: 'POST', body: { costing: fbad, sha, note: 'x' } });
 check('more Founder positions than shares → 400', r.status === 400 && /more Founder positions than shares/.test(r.t), r.t);
+const opx = structuredClone(base); opx.common.operating.fuelPerHour = 400; opx.common.operating.junk = 1;
+r = await call('/api/publish', { token: T, method: 'POST', body: { costing: opx, sha, note: 'fuel estimate' } });
+c3 = JSON.parse(Buffer.from(lastPut.content, 'base64').toString());
+check('operating estimates publish + listed', r.status === 200 && c3.common.operating.fuelPerHour === 400 && !('junk' in c3.common.operating) && /Fuel\/oil estimate per flight hour: \$375 → \$400/.test(lastPut.message), lastPut.message);
+const opb = structuredClone(base); opb.common.operating.pilotDayMin = 3000;
+r = await call('/api/publish', { token: T, method: 'POST', body: { costing: opb, sha, note: 'x' } });
+check('pilot range backwards → 400', r.status === 400 && /range runs backwards/.test(r.t), r.t);
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

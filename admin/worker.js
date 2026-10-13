@@ -39,7 +39,8 @@ const AIRCRAFT = {
     common: ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays'],
     program: ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
     programMarket: ['generation', 'yearFrom', 'yearTo'],
-    founders: ['activationRate', 'premiumRate', 'reserveShare']
+    founders: ['activationRate', 'premiumRate', 'reserveShare'],
+    operating: ['fuelPerHour', 'pilotDayMin', 'pilotDayMax']
   },
   sr22t: {
     prefix: '/sr22t', name: 'SR22T', repo: () => 'bopaero/sr22tProgram', token: env => env.GITHUB_TOKEN_SR22T || env.GITHUB_TOKEN,
@@ -53,7 +54,8 @@ const AIRCRAFT = {
     bridge: ['purchasePrice', 'monthlyLoan', 'monthlyInsurance', 'leaseMonthly', 'leaseIncludedHours', 'leaseExtraHourRate', 'leaseHourlyRate',
              'acquisitionCosts', 'engineReserve', 'annualProgramTotal'],
     bridgeMarket: ['yearFrom', 'yearTo'],
-    founders: ['activationRate', 'premiumRate', 'reserveShare']
+    founders: ['activationRate', 'premiumRate', 'reserveShare'],
+    operating: ['fuelPerHour', 'pilotDayMin', 'pilotDayMax']
   }
 };
 function aircraftFor(pathname) {
@@ -269,7 +271,8 @@ const LABELS = {
   annualProgramTotal: 'Post-pay bridge annual program requirement (all shares)',
   yearFrom: 'Bridge comparables: model year from', yearTo: 'Bridge comparables: model year to',
   activationRate: 'Founder activation fee', premiumRate: 'Founder annual premium', reserveShare: 'Founder premium share to reserve',
-  founders: "Founder's Circle positions"
+  founders: "Founder's Circle positions",
+  fuelPerHour: 'Fuel/oil estimate per flight hour', pilotDayMin: 'Pilot day rate estimate (from)', pilotDayMax: 'Pilot day rate estimate (to)'
 };
 function fmt(field, v) {
   if (v === undefined) return '—';
@@ -290,6 +293,9 @@ function diff(a, b, cfg) {
     if (f === 'market') {
       for (const g of Object.keys(cm)) if (!same((a.common.market || {})[g], (b.common.market || {})[g]))
         out.push(LABELS[g] + ': ' + fmt(g, (a.common.market || {})[g]) + ' → ' + fmt(g, (b.common.market || {})[g]));
+    } else if (f === 'operating') {
+      for (const g of cfg.operating) if (!same((a.common.operating || {})[g], (b.common.operating || {})[g]))
+        out.push(LABELS[g] + ': ' + fmt(g, (a.common.operating || {})[g]) + ' → ' + fmt(g, (b.common.operating || {})[g]));
     } else if (f === 'founders') {
       for (const g of cfg.founders) if (!same((a.common.founders || {})[g], (b.common.founders || {})[g]))
         out.push(LABELS[g] + ': ' + fmt(g, (a.common.founders || {})[g]) + ' → ' + fmt(g, (b.common.founders || {})[g]));
@@ -325,6 +331,7 @@ function pick(o, fields) { const r = {}; for (const f of fields) if (o && o[f] !
 function cleanCommon(c, cfg) {
   const out = pick(c, cfg.common);
   if (c && c.founders && cfg.founders) out.founders = pick(c.founders, cfg.founders);
+  if (c && c.operating && cfg.operating) out.operating = pick(c.operating, cfg.operating);
   if (c && c.market) out.market = pick(c.market, ['roundTo', 'maxListingAgeDays']);
   return out;
 }

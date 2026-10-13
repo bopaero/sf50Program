@@ -85,4 +85,7 @@ r = await call('/sr22t/api/publish', { token: T, method: 'POST', body: { costing
 c = parse();
 check('post-pay option fields publish + listed', r.status === 200 && c.bridge.engineReserve === 100000 && c.bridge.annualProgramTotal === 340000 &&
   /Post-pay Engine\/Powerplant Reserve \(all shares\): \$91,725 → \$100,000/.test(lastPut.message), lastPut.message);
+const sop = structuredClone(base); sop.common.operating.pilotDayMax = 1600;
+r = await call('/sr22t/api/publish', { token: T, method: 'POST', body: { costing: sop, sha, note: 'pilot rates' } });
+check('SR22T operating estimate publishes + listed', r.status === 200 && /Pilot day rate estimate \(to\): \$1,500 → \$1,600/.test(lastPut.message), lastPut.message);
 console.log(`\n${pass} passed, ${fail} failed`); process.exit(fail ? 1 : 0);

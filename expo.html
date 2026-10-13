@@ -60,6 +60,11 @@ function words(n) {
            'sixteen','seventeen','eighteen','nineteen','twenty'][n];
   return w ? w.charAt(0).toUpperCase() + w.slice(1) + ' (' + n + ')' : String(n);
 }
+function opCosts(common) {   // operating-cost estimates live in the costing (common.operating)
+  var o = common.operating;
+  if (!o) throw new Error('The costing has no operating-cost estimates (common.operating).');
+  return { fuel: money(o.fuelPerHour), pilot: money(o.pilotDayMin) + '-' + money(o.pilotDayMax) };
+}
 function kv(rows) { return '<table><tbody>' + rows.map(function(r){ return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table>'; }
 
 function render(costing) {
@@ -67,6 +72,7 @@ function render(costing) {
   if (problems.length) throw new Error('Costing is not valid: ' + problems.join('; '));
   var d = SF50Costing.derive(costing);
   // G3 first, then the pre-owned programs from newest generation down
+  var op = opCosts(d.common);
   var order = ['G3', 'G2+', 'G2', 'G1'], progs = order.map(function(k){ return d.byKey[k]; }).filter(Boolean);
   var html =
     '<section class="page">' +
@@ -83,8 +89,8 @@ function render(costing) {
       '<div class="notes">' +
         '<p>~ Pre-owned program figures are planning values, finalized from the selected aircraft.</p>' +
         '<p>* Subject to change annually due to material and supply chain constraints. Founder\u2019s Circle fees are fixed. For more information, visit bopaero.com/the-founders-circle-invite</p>' +
-        '<p>** Fuel/Oil costs average ~$375 flight hr.</p>' +
-        '<p>** Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from $1500-$2500 per day + expenses are good estimates for planning purposes.</p>' +
+        '<p>** Fuel/Oil costs average ~' + op.fuel + ' flight hr.</p>' +
+        '<p>** Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from ' + op.pilot + ' per day + expenses are good estimates for planning purposes.</p>' +
       '</div>' +
       '<h2 style="margin-top:22px">Aircraft Specifications</h2>' +
       kv([
