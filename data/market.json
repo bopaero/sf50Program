@@ -1,10 +1,10 @@
 {
-  "checkedAt": "2026-10-14T15:50:18+00:00",
+  "checkedAt": "2026-10-15T15:36:00+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-13.2",
-  "feedListings": 378,
+  "feedListings": 385,
   "visionJetListings": 33,
   "excluded": {
     "sold or pending": 6,
@@ -30,7 +30,7 @@
           "variation": "",
           "hours": 2298,
           "price": 1700000,
-          "modified": "2026-09-30",
+          "modified": "2026-10-15",
           "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g1-0033-n223wy/",
           "certified": true,
           "available": true
@@ -147,7 +147,7 @@
           "variation": "Premium",
           "hours": 1000,
           "price": 2750000,
-          "modified": "2026-10-01",
+          "modified": "2026-10-15",
           "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-premium-0098-n50g/",
           "certified": true,
           "available": true
