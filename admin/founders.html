@@ -55,6 +55,7 @@ tbody tr:nth-child(even) td { background: #fafafb; }
 <main class="sheet" id="sheet"><p>Loading both costings…</p></main>
 <script src="https://sf50program.bopaero.com/assets/costing.js"></script>
 <script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
+<script src="https://sf50program.bopaero.com/assets/founders.js"></script>
 <script>
 (function () {
   'use strict';
@@ -69,6 +70,8 @@ tbody tr:nth-child(even) td { background: #fafafb; }
   function getJson(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); }); }
 
   Promise.all(SOURCES.map(function (s) { return getJson(s.api); })).then(function (res) {
+    if (!window.FoundersCircle) throw new Error('founders.js did not load');
+    var R = window.FoundersCircle.REPURCHASE;
     var cols = [], versions = [];
     res.forEach(function (r, i) {
       var src = SOURCES[i], lib = src.lib();
@@ -137,15 +140,15 @@ tbody tr:nth-child(even) td { background: #fafafb; }
       ]) +
 
       '<h3>3. Founder Repurchase Benefit</h3>' +
-      '<ul><li><b>Minimum ownership period:</b> 12 months before a Founder may initiate a repurchase request.</li>' +
-      '<li><b>Notice:</b> Founder provides 180 days written notice.</li>' +
-      '<li><b>During notice:</b> Founder remains an owner and bop Aero may market the ownership position to a replacement buyer.</li>' +
-      '<li><b>At closing:</b> bop Aero repurchases the share at the defined Net Repurchase Value, based on then-current value under the final agreement.</li>' +
-      '<li>If liquidity allows, bop Aero may pay 100% at closing. Otherwise, a minimum cash payment applies and the balance is paid upon resale, subject to a defined outside repayment deadline.</li></ul>' +
+      // Repurchase terms come from assets/founders.js, shared with the customer Insert and Detail Sheet
+      '<ul><li><b>Minimum ownership period:</b> ' + R.minMonths + ' months before a Founder may initiate a repurchase request.</li>' +
+      '<li><b>Notice:</b> Founder provides ' + R.noticeDays + ' days written notice.</li>' +
+      '<li><b>During notice:</b> ' + esc(R.duringNotice) + '</li>' +
+      '<li><b>At closing:</b> ' + esc(R.atClosing) + '</li>' +
+      '<li>' + esc(R.payment) + '</li></ul>' +
       '<p><b>Minimum Cash Payment by Tenure</b> — the minimum immediate payment increases with the Founder’s time in the program:</p>' +
       '<div class="tw"><table><thead><tr><th>Time in Founder’s Circle at repurchase closing</th><th>Minimum cash payment</th></tr></thead><tbody>' +
-        [['12-24 months', '10%'], ['24-36 months', '12.5%'], ['36-48 months', '15%'], ['48-60 months', '17.5%'], ['60 months / end of aircraft cycle', '20%']]
-          .map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+        R.tenure.map(function (r) { return '<tr><td>' + esc(r.period) + '</td><td>' + pct(r.minCash) + '</td></tr>'; }).join('') + '</tbody></table></div>' +
       '<p><b>Key economic principle:</b> the reserve is designed to bridge the period between a Founder exit and resale of the share - not to pre-fund the entire share purchase price.</p>' +
 
       '<h3>4. Company Economics</h3>' +

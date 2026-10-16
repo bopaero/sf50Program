@@ -44,6 +44,11 @@ DOCS += [('financial.html?p=' + k.replace('+', '%2B'), 'bop-Aero-SF50-%s-Financi
 # archived with all three and checked against the comparison version.
 COMPARISON_PDF = 'bop-Aero-Aircraft-Ownership-Comparison.pdf'
 DOCS += [('comparison.html', COMPARISON_PDF, 2, None)]
+# Founder's Circle Insert + Detail Sheet (added 2026-10-16): built from BOTH costings, so each
+# page is stamped "SF50 <v> · SR22T <v>" and archived under both versions (suffix starts 'fc:').
+FC_DOCS = [('founders-insert.html', 'bop-Aero-Founders-Circle-Insert.pdf', 2, 'fc:founders-insert'),
+           ('founders-detail.html', 'bop-Aero-Founders-Circle-Detail-Sheet.pdf', 2, 'fc:founders-detail')]
+DOCS += FC_DOCS
 SR22T_COSTING = 'https://sr22tprogram.bopaero.com/data/costing.json'
 MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
@@ -103,7 +108,8 @@ def main():
         bad = []
         if pages != expected:
             bad.append('rendered %d pages, expected %d' % (pages, expected))
-        stamp = version if suffix is not None else 'Comparison ' + cmp_version
+        fc = suffix is not None and suffix.startswith('fc:')
+        stamp = 'Comparison ' + cmp_version if suffix is None else ('SF50 ' + version + ' · SR22T ') if fc else version
         if text.count(stamp) != expected:
             bad.append('version %s appears on %d pages, expected %d' % (stamp, text.count(stamp), expected))
         if suffix is None:
@@ -113,6 +119,16 @@ def main():
             else:
                 sr22t_version = m.group(3)
                 suffix = '%s-comparison-sf50-%s-sr22t-%s' % (cmp_version, version, sr22t_version)
+        elif fc:
+            srs = set(re.findall(r'SF50 v[\d.-]+ · SR22T (v[\d.-]+)', text))
+            if len(srs) != 1:
+                bad.append('Founder stamp names %d SR22T versions, expected 1' % len(srs))
+            else:
+                sr22t_version = sr22t_version or next(iter(srs))
+                suffix = '%s-%s-sr22t-%s' % (version, suffix[3:], next(iter(srs)))
+        # The Insert carries the program, never its figures (Raymond 2026-10-16): those are on the Detail Sheet
+        if page == 'founders-insert.html' and re.search(r'\$\s*\d|\d\s*%', text):
+            bad.append('the Insert shows a financial figure: ' + re.search(r'.{0,40}(\$\s*\d|\d\s*%).{0,20}', text).group(0).strip())
         if 'could not be displayed' in text:
             bad.append('the page reported an error: ' + text.strip().splitlines()[0][:200])
         # A formatting or data slip renders as literal JS values instead of figures
@@ -136,7 +152,7 @@ def main():
             json.dump({'sf50': version, 'sr22t': sr22t_version, 'comparison': cmp_version}, fh)
         print('    wrote ' + os.path.join(out_dir, 'data', 'build.json'))
     for name, tmp, pages, suffix in built:
-        archive = (suffix + '.pdf') if suffix.startswith(cmp_version + '-comparison') else (version + suffix + '.pdf')
+        archive = (suffix + '.pdf') if suffix.startswith((cmp_version + '-comparison', version + '-founders')) else (version + suffix + '.pdf')
         targets = ([os.path.join(out_dir, name)] if out_dir else
                    [os.path.join(REPO, name), os.path.join(REPO, 'versions', archive)])
         for t in targets:

@@ -139,20 +139,21 @@ function render(costing) {
       '</div>' +
       '<div class="stars">* * *</div>' +
       '<h2>Optional Programs &amp; Training Costs</h2>' +
-      (fc ? row('Founder’s Circle (per Share, billed annually)<sup>' + fnFc + '</sup>', money(p.founderPremium)) : '') +
-      row('Cirrus SF50 Type Training (for Owner-Pilots)<sup>' + fnTrain + '</sup>', '~' + op.training, fc ? 'alt' : '') +
+      (fc ? row('Founder’s Circle Activation (per Share, one-time)<sup>' + fnFc + '</sup>', money(p.founderActivation)) +
+            row('Founder’s Circle (per Share, billed annually)<sup>' + fnFc + '</sup>', money(p.founderPremium), 'alt') : '') +
+      row('Cirrus SF50 Type Training (for Owner-Pilots)<sup>' + fnTrain + '</sup>', '~' + op.training) +
       '<div class="stars">* * *</div>' +
       '<div class="contact">' +
         '<div class="card"><img src="assets/raymond-chase.jpg" alt="Raymond Chase">' +
           '<div class="who"><p><span class="name">Raymond Chase</span><br>President &amp; CEO<br>859.419.8645<br>raymond@bopaero.com</p>' +
           '<p>Cincinnati West Airport<br>Hangar 27<br>10030 West Rd<br>Harrison, OH 45030</p></div></div>' +
         '<div class="notes">' +
-          '<p>* Subject to change annually due to material and supply chain constraints.' + (fc ? ' Founder’s Circle fees are fixed.' : '') + '</p>' +
+          '<p>* Subject to change annually due to material and supply chain constraints.' + (fc ? ' Founder’s Circle fees are fixed for the program duration, which is tied to the aircraft serial number.' : '') + '</p>' +
           '<p>** Fuel/Oil costs average ~' + op.fuel + ' per flight hr and are subject to market fluctuations. Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from ' + op.pilot + ' per day + expenses are good estimates for planning purposes.</p>' +
           '<p><sup>1</sup> Acquisition costs such as taxes, warranties, and legal registrations are estimated and included as part of the price.</p>' +
           '<p><sup>2</sup> Taxes vary from state to state and county to county. Taxes will be calculated based on the location that aircraft is based.</p>' +
           '<p><sup>3</sup> Acquisition costs borne by bop Aero to set up and manage each program aircraft.</p>' +
-          (fc ? '<p><sup>' + fnFc + '</sup> ' + words(p.founders.positions) + ' Shares reserved for Founder’s Circle Program per aircraft.</p>' : '') +
+          (fc ? '<p><sup>' + fnFc + '</sup> ' + words(p.founders.positions) + ' Shares reserved for Founder’s Circle Program per aircraft. See the Founder’s Circle Detail Sheet for Founder pricing and terms.</p>' : '') +
           '<p><sup>' + fnTrain + '</sup> Cirrus SF50 Type training costs can vary. bop Aero’s preferred SF50 training provider is Elite Aircraft Services (Elite) in Sanford, NC, for initial and recurrent type training. Please call for details.</p>' +
           (p.approx ? '<p><sup>' + fnEst + '</sup> Pre-owned figures are illustrative planning values and are finalized from the selected aircraft, tax jurisdiction, JetStream status, connectivity configuration and transaction-specific costs.</p>' : '') +
         '</div>' +

@@ -98,3 +98,22 @@ costing publish lands in the other repo, so `.github/workflows/comparison-refres
 15 minutes whether the live SR22T costing differs from the one this site was built from
 (`data/build.json`, written by the build) and starts Publish if so (repo GITHUB_TOKEN only).
 Tests: `bash admin/test/run.sh` (comparison suite included).
+
+## Founder's Circle Insert + Detail Sheet
+
+Added 2026-10-16. Both are built from **both** costings (SF50 here, SR22T from
+sr22tprogram.bopaero.com) and stamped `SF50 <v> · SR22T <v>` on every page; an SR22T
+publish rebuilds them through `comparison-refresh.yml`, like the comparison.
+
+- `founders-insert.html` → `bop-Aero-Founders-Circle-Insert.pdf` (2 pp). Rebuilt from
+  Raymond's Pages Insert Rev_7. Carries the program (benefits, limited positions, the
+  repurchase path) but **no financial figures**: the build refuses to publish it if a
+  `$` amount or a percentage appears.
+- `founders-detail.html` → `bop-Aero-Founders-Circle-Detail-Sheet.pdf` (2 pp). Styled like
+  the Financial Detail Sheets: share price, activation fee, annual fee + premium, positions,
+  repurchase terms and the minimum-cash-by-tenure table. Customer-facing, so the internal
+  liquidity-reserve allocation and company economics stay in the internal Summary (`/founders`).
+- `assets/founders.js` holds the wording that is not a costing figure (benefits, repurchase
+  terms, tenure schedule, the fixed-fee sentence). The Insert, the Detail Sheet and the
+  internal Summary all read it. Tests: `admin/test/founders.test.mjs` (in `run.sh`).
+- Archived as `versions/<sf50 v>-founders-insert-sr22t-<sr22t v>.pdf` (and `-founders-detail-`).

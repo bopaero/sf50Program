@@ -43,9 +43,9 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          cp -r index.html expo.html financial.html comparison.html CNAME robots.txt assets data versions _site/
+          cp -r index.html expo.html financial.html comparison.html founders-insert.html founders-detail.html CNAME robots.txt assets data versions _site/
 
-      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheets + the 2-page comparison, versioned, clean)
+      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheets + the 2-page comparison + the 2-page Founder's Circle Insert and Detail Sheet, versioned, clean)
         run: python3 tools/build-pdf.py --out _site
 
       - name: Archive this version's PDF
@@ -72,6 +72,15 @@ jobs:
             cp "$a" _site/versions/
             added="$added $a"
           fi
+          # The Founder's Circle Insert + Detail Sheet use BOTH costings: archived under both versions
+          for pair in "founders-insert:Founders-Circle-Insert" "founders-detail:Founders-Circle-Detail-Sheet"; do
+            a=$(python3 -c "import json,sys;b=json.load(open('_site/data/build.json'));print('versions/%s-%s-sr22t-%s.pdf'%(b['sf50'],sys.argv[1],b['sr22t']))" "${pair%%:*}")
+            if [ ! -f "$a" ]; then
+              cp "_site/bop-Aero-${pair#*:}.pdf" "$a"
+              cp "$a" _site/versions/
+              added="$added $a"
+            fi
+          done
           if [ -n "$added" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
