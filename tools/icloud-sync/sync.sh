@@ -15,6 +15,8 @@ FILES=(
   "$SF50/bop-Aero-SF50-G2plus-Financial-Detail-Sheet.pdf"
   "$SF50/bop-Aero-SF50-Expo-1-Pager.pdf"
   "$SF50/bop-Aero-Aircraft-Ownership-Comparison.pdf"
+  "$SF50/bop-Aero-Founders-Circle-Insert.pdf"
+  "$SF50/bop-Aero-Founders-Circle-Detail-Sheet.pdf"
   "$SR22T/bop-Aero-SR22T-Financial-Detail-Sheet.pdf"
   "$SR22T/bop-Aero-SR22T-Expo-1-Pager.pdf"
 )

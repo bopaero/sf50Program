@@ -1,5 +1,5 @@
 #!/bin/bash
-# Runs sync.sh against a scratch folder: first run must copy all 8 PDFs,
+# Runs sync.sh against a scratch folder: first run must copy all 10 PDFs,
 # second run must change nothing, a corrupted copy must be replaced.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
@@ -7,8 +7,8 @@ d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
 pass=0; fail=0
 check() { if eval "$2"; then pass=$((pass+1)); else echo "FAIL: $1"; fail=$((fail+1)); fi; }
 out=$(DEST="$d" "$here/sync.sh")
-check "first run copies 8" '[ "$(echo "$out" | grep -c updated)" = 8 ]'
-check "all are PDFs" '[ "$(for f in "$d"/*.pdf; do head -c 5 "$f"; echo; done | grep -c %PDF-)" = 8 ]'
+check "first run copies 10" '[ "$(echo "$out" | grep -c updated)" = 10 ]'
+check "all are PDFs" '[ "$(for f in "$d"/*.pdf; do head -c 5 "$f"; echo; done | grep -c %PDF-)" = 10 ]'
 out=$(DEST="$d" "$here/sync.sh")
 check "second run is a no-op" '[ -z "$out" ]'
 echo junk > "$d/bop-Aero-SF50-Expo-1-Pager.pdf"
