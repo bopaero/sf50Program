@@ -45,22 +45,28 @@ jobs:
           mkdir _site
           cp -r index.html expo.html financial.html CNAME robots.txt assets data versions _site/
 
-      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheet, versioned, clean)
+      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheets, versioned, clean)
         run: python3 tools/build-pdf.py --out _site
 
       - name: Archive this version's PDF
         run: |
           v=$(python3 -c "import json;print(json.load(open('data/costing.json'))['version'])")
-          if [ ! -f "versions/$v.pdf" ]; then
-            cp "_site/bop-Aero-SF50-Ownership-Program-Options.pdf" "versions/$v.pdf"
-            cp "versions/$v.pdf" _site/versions/
-            cp "_site/bop-Aero-SF50-Expo-1-Pager.pdf" "versions/$v-expo.pdf"
-            cp "versions/$v-expo.pdf" _site/versions/
-            cp "_site/bop-Aero-SF50-Financial-Detail-Sheet.pdf" "versions/$v-financial.pdf"
-            cp "versions/$v-financial.pdf" _site/versions/
+          # Each PDF is archived once per version (a sheet added mid-version is archived on its first publish)
+          added=""
+          for pair in ":Ownership-Program-Options" "-expo:Expo-1-Pager" "-financial:Financial-Detail-Sheet" \
+                      "-financial-g1:G1-Financial-Detail-Sheet" "-financial-g2:G2-Financial-Detail-Sheet" \
+                      "-financial-g2plus:G2plus-Financial-Detail-Sheet"; do
+            a="versions/$v${pair%%:*}.pdf"
+            if [ ! -f "$a" ]; then
+              cp "_site/bop-Aero-SF50-${pair#*:}.pdf" "$a"
+              cp "$a" _site/versions/
+              added="$added $a"
+            fi
+          done
+          if [ -n "$added" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add "versions/$v.pdf" "versions/$v-expo.pdf" "versions/$v-financial.pdf"
+            git add $added
             git commit -m "Archive $v PDF [skip ci]"
             git push
           fi

@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <!--
-  bop Aero — 2026 Cirrus SF50 Program Economics (Financial Detail Sheet, 2 pages).
+  bop Aero — Cirrus SF50 Program Economics (Financial Detail Sheet, 2 pages).
   Rebuilt from Raymond's Pages sheet (Rev_6, single G3 program) on 2026-10-13 so it
-  can't drift: the G3 owner investment and its breakdown, the Annual Program Fee,
+  can't drift. One sheet per program (2026-10-16): financial.html is G3, and
+  financial.html?p=G1 / G2 / G2+ are the pre-owned programs (approximate figures).
+  The owner investment and its breakdown, the Annual Program Fee,
   the Founder's Circle premium and positions, and the operating and type-training
   estimates all come from data/costing.json through assets/costing.js. Footnote and
   contact wording is edited here. The PDF is generated on every publish.
@@ -82,33 +84,46 @@ function foot(version) {
   return '<footer class="foot"><span>bopaero.com</span><span>(513) 450-2FLY</span><span>info@bopaero.com</span><span class="ver">' + esc(version) + '</span></footer>';
 }
 
+var KEY = new URLSearchParams(location.search).get('p') || 'G3';
+
 function render(costing) {
   var problems = SF50Costing.validate(costing);
   if (problems.length) throw new Error('Costing is not valid: ' + problems.join('; '));
-  var d = SF50Costing.derive(costing), p = d.byKey.G3, op = opCosts(d.common);
-  if (!p) throw new Error('The costing has no G3 program.');
-  var n = p.shares;
-  // Per-share breakdown, rounded so the lines add up to the rounded investment;
-  // the acquisition line carries closing, connectivity and commission (commission is never its own line)
+  var d = SF50Costing.derive(costing), p = d.byKey[KEY], op = opCosts(d.common);
+  if (!p) throw new Error('The costing has no ' + KEY + ' program.');
+  var n = p.shares, t = p.approx ? '~' : '';
+  // Per-share breakdown, rounded so the lines add up to the rounded investment; the acquisition
+  // line carries closing and commission (commission is never its own line). A connectivity
+  // installation (pre-owned G2) gets its own line rather than hiding in acquisition costs.
   var invest = Math.round(p.capPerShare), retail = Math.round(p.acquisition / n), tax = Math.round(p.tax / n),
-      jet = Math.round(d.common.jetstream / n), acq = invest - retail - tax - jet;
+      jet = Math.round(d.common.jetstream / n), conn = Math.round(p.connectivityCost / n),
+      acq = invest - retail - tax - jet - conn;
   var fc = p.founders && p.founderPremium !== undefined;
+  // New G3 keeps Rev_6's wording; pre-owned sheets name the generation and model years
+  var m = p.market;
+  var title = p.approx ? 'Cirrus SF50 ' + KEY + ' Program Economics' : '2026 Cirrus SF50 Program Economics';
+  var priceLabel = p.approx ? 'Pre-Owned SF50 ' + KEY + (m ? ' (' + m.yearFrom + '–' + m.yearTo + ')' : '') + ' Purchase Price'
+                            : 'Cirrus SF50 ' + KEY + ' Retail Price';
+  // Footnotes are numbered in the order they appear (no Founder's Circle footnote on pre-owned sheets)
+  var fnFc = fc ? 4 : 0, fnTrain = fc ? 5 : 4, fnEst = fnTrain + 1;
+  document.title = title + ' — bop Aero';
 
   var page1 =
     '<section class="page">' +
-      '<div class="band"><img src="assets/bop-aero-logo.svg" alt="bop Aero"><h1>2026 Cirrus SF50 Program Economics</h1></div>' +
+      '<div class="band"><img src="assets/bop-aero-logo.svg" alt="bop Aero"><h1>' + esc(title) + '</h1></div>' +
       '<img class="hero" src="assets/sf50-n867ca-hero.jpg" alt="Cirrus Vision Jet N867CA in flight over a mountain lake">' +
       '<h2>Aircraft Equity Details</h2>' +
-      row('Owner Equity Investment (per share)', money(invest) + '<sup>1</sup>') +
+      row('Owner Equity Investment (per share)', t + money(invest) + '<sup>1' + (p.approx ? ',' + fnEst : '') + '</sup>') +
       row('Projected Annual Program Fee*', '~' + money(p.annualFee), 'alt') +
       '<p class="center">Operational costs such as consumables, crew, etc. not included**</p>' +
       '<div class="detail">' +
         '<h4>Aircraft Equity Details (per Share)</h4>' +
-        row('Owner Equity Investment', money(invest) + '<sup>1</sup>') +
-        row('Cirrus SF50 G3 Retail Price', money(retail), 'sub alt') +
-        row('Estimated Taxes<sup>2</sup>', money(tax), 'sub') +
-        row('Cirrus JetStream Program (Warranty)', money(jet), 'sub alt') +
-        row('bop Aero Program Acquisition Costs<sup>3</sup>', money(acq), 'sub') +
+        row('Owner Equity Investment', t + money(invest) + '<sup>1</sup>') +
+        row(esc(priceLabel), t + money(retail), 'sub alt') +
+        row('Estimated Taxes<sup>2</sup>', t + money(tax), 'sub') +
+        row('Cirrus JetStream Program (Warranty)', t + money(jet), 'sub alt') +
+        (conn ? row('In-Flight Connectivity Installation', t + money(conn), 'sub') : '') +
+        row('bop Aero Program Acquisition Costs<sup>3</sup>', t + money(acq), conn ? 'sub alt' : 'sub') +
       '</div>' +
       '<div class="stars">* * *</div>' +
       foot(d.version) +
@@ -123,21 +138,22 @@ function render(costing) {
       '</div>' +
       '<div class="stars">* * *</div>' +
       '<h2>Optional Programs &amp; Training Costs</h2>' +
-      (fc ? row('Founder’s Circle (per Share, billed annually)<sup>4</sup>', money(p.founderPremium)) : '') +
-      row('Cirrus SF50 Type Training (for Owner-Pilots)<sup>5</sup>', '~' + op.training, 'alt') +
+      (fc ? row('Founder’s Circle (per Share, billed annually)<sup>' + fnFc + '</sup>', money(p.founderPremium)) : '') +
+      row('Cirrus SF50 Type Training (for Owner-Pilots)<sup>' + fnTrain + '</sup>', '~' + op.training, fc ? 'alt' : '') +
       '<div class="stars">* * *</div>' +
       '<div class="contact">' +
         '<div class="card"><img src="assets/raymond-chase.jpg" alt="Raymond Chase">' +
           '<div class="who"><p><span class="name">Raymond Chase</span><br>President &amp; CEO<br>859.419.8645<br>raymond@bopaero.com</p>' +
           '<p>Cincinnati West Airport<br>Hangar 27<br>10030 West Rd<br>Harrison, OH 45030</p></div></div>' +
         '<div class="notes">' +
-          '<p>* Subject to change annually due to material and supply chain constraints. Founder’s Circle fees are fixed.</p>' +
+          '<p>* Subject to change annually due to material and supply chain constraints.' + (fc ? ' Founder’s Circle fees are fixed.' : '') + '</p>' +
           '<p>** Fuel/Oil costs average ~' + op.fuel + ' per flight hr and are subject to market fluctuations. Pilot costs can vary from pilot to pilot based on their experience. Generally, daily rates from ' + op.pilot + ' per day + expenses are good estimates for planning purposes.</p>' +
           '<p><sup>1</sup> Acquisition costs such as taxes, warranties, and legal registrations are estimated and included as part of the price.</p>' +
           '<p><sup>2</sup> Taxes vary from state to state and county to county. Taxes will be calculated based on the location that aircraft is based.</p>' +
           '<p><sup>3</sup> Acquisition costs borne by bop Aero to set up and manage each program aircraft.</p>' +
-          (fc ? '<p><sup>4</sup> ' + words(p.founders.positions) + ' Shares reserved for Founder’s Circle Program per aircraft.</p>' : '') +
-          '<p><sup>5</sup> Cirrus SF50 Type training costs can vary. bop Aero’s preferred SF50 training provider is Elite Aircraft Services (Elite) in Sanford, NC, for initial and recurrent type training. Please call for details.</p>' +
+          (fc ? '<p><sup>' + fnFc + '</sup> ' + words(p.founders.positions) + ' Shares reserved for Founder’s Circle Program per aircraft.</p>' : '') +
+          '<p><sup>' + fnTrain + '</sup> Cirrus SF50 Type training costs can vary. bop Aero’s preferred SF50 training provider is Elite Aircraft Services (Elite) in Sanford, NC, for initial and recurrent type training. Please call for details.</p>' +
+          (p.approx ? '<p><sup>' + fnEst + '</sup> Pre-owned figures are illustrative planning values and are finalized from the selected aircraft, tax jurisdiction, JetStream status, connectivity configuration and transaction-specific costs.</p>' : '') +
         '</div>' +
       '</div>' +
       foot(d.version) +

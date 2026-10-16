@@ -64,3 +64,10 @@ positions, and the fuel/pilot/type-training estimates (`common.operating`) all c
 the costing; footnote and contact wording is edited in `financial.html`. Publish builds it
 (fails unless exactly 2 pages, each version-stamped) and archives
 `versions/<version>-financial.pdf`.
+
+Since 2026-10-16 there is one sheet per program. The same page renders the pre-owned
+programs with `financial.html?p=G1` / `?p=G2` / `?p=G2%2B` →
+`bop-Aero-SF50-G1|G2|G2plus-Financial-Detail-Sheet.pdf`, archived as
+`versions/<version>-financial-g1|g2|g2plus.pdf`. Pre-owned sheets show `~` figures, name the
+model years from the program's market range, give a connectivity installation its own line,
+leave out Founder's Circle (G3 only), and carry the illustrative-figures footnote.

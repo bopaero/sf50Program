@@ -36,6 +36,9 @@ FINANCIAL_PDF = 'bop-Aero-SF50-Financial-Detail-Sheet.pdf'
 # Sheet was added 2026-10-13 (rebuilt from Raymond's Rev_6).
 DOCS = [('index.html', PDF_NAME, EXPECTED_PAGES, ''), ('expo.html', EXPO_PDF, 1, '-expo'),
         ('financial.html', FINANCIAL_PDF, 2, '-financial')]
+# One Financial Detail Sheet per pre-owned program, added 2026-10-16 (same page, ?p=<key>)
+DOCS += [('financial.html?p=' + k.replace('+', '%2B'), 'bop-Aero-SF50-%s-Financial-Detail-Sheet.pdf' % k.replace('+', 'plus'),
+          2, '-financial-' + k.replace('+', 'plus').lower()) for k in ('G1', 'G2', 'G2+')]
 MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 
