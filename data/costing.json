@@ -1,14 +1,21 @@
 {
-  "version": "v2026-10-13.2",
-  "publishedAt": "2026-10-13T20:00:00.000Z",
-  "note": "SF50 type-training estimate moved into the costing (~$18,000-$35,000, from the Financial Detail Sheet Rev_6) so the generated Financial Detail Sheet quotes it. No program figures changed.",
+  "version": "v2026-10-16.1",
+  "publishedAt": "2026-10-16T15:39:10.837Z",
+  "note": "Market update: G1 acquisition $1,900,000 → $1,800,000 (median of 3 Cirrus-listed 2016–2018 G1s); G2+ acquisition $3,100,000 → $3,000,000 (median of 6 Cirrus-listed 2021–2023 G2+s)",
   "baseline": "G3",
   "common": {
     "fixedCost": 499208,
     "jetstream": 389900,
     "closing": 9500,
     "taxRate": 0.07,
-    "commissionRate": 0,
+    "commissionRate": 0.06,
+    "aircraftHours": 1400,
+    "aircraftDays": 280,
+    "founders": {
+      "activationRate": 0.05,
+      "premiumRate": 0.25,
+      "reserveShare": 0.5
+    },
     "operating": {
       "fuelPerHour": 375,
       "pilotDayMin": 1500,
@@ -16,13 +23,6 @@
       "trainingMin": 18000,
       "trainingMax": 35000
     },
-    "founders": {
-      "activationRate": 0.05,
-      "premiumRate": 0.25,
-      "reserveShare": 0.5
-    },
-    "aircraftHours": 1400,
-    "aircraftDays": 280,
     "market": {
       "roundTo": 50000,
       "maxListingAgeDays": 90
@@ -34,7 +34,7 @@
       "approx": true,
       "shares": 2,
       "sharesRemaining": 2,
-      "acquisition": 1900000,
+      "acquisition": 1800000,
       "connectivityCost": 0,
       "management": 150000,
       "reserve": 75000,
@@ -83,7 +83,7 @@
       "approx": true,
       "shares": 4,
       "sharesRemaining": 4,
-      "acquisition": 3100000,
+      "acquisition": 3000000,
       "connectivityCost": 0,
       "management": 180000,
       "reserve": 100000,
@@ -108,14 +108,14 @@
       "approx": false,
       "shares": 8,
       "sharesRemaining": 8,
-      "founders": {
-        "positions": 2
-      },
       "basePrice": 2850000,
       "options": 835000,
       "connectivityCost": 0,
       "management": 240000,
       "reserve": 351020,
+      "founders": {
+        "positions": 2
+      },
       "features": {
         "connectivity": {
           "status": "included",
