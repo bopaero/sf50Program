@@ -151,6 +151,7 @@ button.small { font-size:12px; padding:5px 10px; }
   function isNew(p) { return p.basePrice !== undefined; }
   var PROG_FIELDS = [
     ['shares', 'Shares available for purchase', 'int', function () { return true; }],
+    ['unitsPerShare', 'Ownership units per share (bop Aero retains 1 unit)', 'int', function () { return true; }],
     ['sharesRemaining', 'Shares remaining (unsold; shown on the website calculator)', 'int', function () { return true; }],
     ['acquisition', 'Aircraft acquisition value', 'money', function (p) { return isNew(p) ? 'computed' : true; }],
     ['basePrice', '  New: Cirrus base price (tracked)', 'money', isNew],

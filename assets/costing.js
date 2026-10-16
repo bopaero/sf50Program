@@ -16,6 +16,7 @@
 
   var LIMITS = {
     shares:           { min: 1,    max: 20,     integer: true },
+    unitsPerShare:    { min: 1,    max: 50,     integer: true },   // ownership units per share; bop Aero retains 1 (Raymond 2026-10-16)
     sharesRemaining:  { min: 0,    max: 20,     integer: true },   // sales status: unsold shares
     aircraftHours:    { min: 100,  max: 5000,   integer: true },   // yearly hours the aircraft is scheduled
     aircraftDays:     { min: 10,   max: 366,    integer: true },   // yearly days the aircraft is scheduled
@@ -80,7 +81,7 @@
       if (keys[p.key]) errors.push('duplicate program ' + p.key);
       keys[p.key] = true;
       if (typeof p.approx !== 'boolean') errors.push(where + ' approx must be true or false');
-      ['shares', 'sharesRemaining', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
+      ['shares', 'unitsPerShare', 'sharesRemaining', 'connectivityCost', 'management', 'reserve'].forEach(function (f) { checkNumber(errors, where, f, p[f]); });
       if (p.sharesRemaining > p.shares) errors.push(where + ' has more shares remaining (' + p.sharesRemaining + ') than shares available (' + p.shares + ')');
       // Price is either one acquisition value (pre-owned) or base + options (new)
       var split = p.basePrice !== undefined || p.options !== undefined;
@@ -144,8 +145,12 @@
       var p = {};
       for (var k in src) p[k] = src[k];
       if (p.basePrice !== undefined) p.acquisition = p.basePrice + p.options;   // new aircraft
-      p.interests      = p.shares + 1;                 // one interest retained by bop Aero
-      p.equity         = 1 / p.interests;
+      // Ownership units (Raymond 2026-10-16, Program Architecture): each share holds unitsPerShare
+      // units and bop Aero retains one, so 2 owners x 7 = 15 units, 4 x 4 = 17, 8 x 2 = 17, 15 x 1 = 16.
+      // Units set equity only; owners still split the program costs evenly (allocation).
+      p.totalUnits     = p.shares * p.unitsPerShare + 1;
+      p.equity         = p.unitsPerShare / p.totalUnits;   // legal equity per owner share
+      p.bopEquity      = 1 / p.totalUnits;                 // bop Aero's retained unit
       p.allocation     = 1 / p.shares;
       p.tax            = Math.round(p.acquisition * common.taxRate);
       p.commission     = Math.round(p.acquisition * common.commissionRate);   // paid to the sales professional; capitalized, not taxed

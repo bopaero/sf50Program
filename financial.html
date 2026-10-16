@@ -114,7 +114,8 @@ function render(costing) {
       '<img class="hero" src="assets/sf50-n867ca-hero.jpg" alt="Cirrus Vision Jet N867CA in flight over a mountain lake">' +
       '<h2>Aircraft Equity Details</h2>' +
       row('Owner Equity Investment (per share)', t + money(invest) + '<sup>1' + (p.approx ? ',' + fnEst : '') + '</sup>') +
-      row('Projected Annual Program Fee*', '~' + money(p.annualFee), 'alt') +
+      row('Ownership per Share', p.unitsPerShare + ' of ' + p.totalUnits + ' units (' + (p.equity * 100).toFixed(2) + '%)', 'alt') +
+      row('Projected Annual Program Fee*', '~' + money(p.annualFee)) +
       '<p class="center">Operational costs such as consumables, crew, etc. not included**</p>' +
       '<div class="detail">' +
         '<h4>Aircraft Equity Details (per Share)</h4>' +

@@ -44,7 +44,7 @@ const AIRCRAFT = {
     prefix: '', name: 'SF50', repo: env => env.GITHUB_REPO, token: env => env.GITHUB_TOKEN,
     lib: SF50Costing, html: EDITOR_HTML, site: 'https://sf50program.bopaero.com',
     common: ['fixedCost', 'jetstream', 'closing', 'taxRate', 'commissionRate', 'aircraftHours', 'aircraftDays'],
-    program: ['key', 'approx', 'shares', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
+    program: ['key', 'approx', 'shares', 'unitsPerShare', 'sharesRemaining', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
     programMarket: ['generation', 'yearFrom', 'yearTo'],
     founders: ['activationRate', 'premiumRate', 'reserveShare'],
     operating: ['fuelPerHour', 'pilotDayMin', 'pilotDayMax', 'trainingMin', 'trainingMax']
@@ -54,7 +54,7 @@ const AIRCRAFT = {
     lib: SR22TCosting, html: SR22T_EDITOR_HTML,
     site: 'https://sr22tprogram.bopaero.com',
     common: ['fixedCost', 'closing', 'taxRate', 'commissionRate'],
-    program: ['key', 'approx', 'shares', 'sharesRemaining', 'maxHours', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
+    program: ['key', 'approx', 'shares', 'unitsPerShare', 'sharesRemaining', 'maxHours', 'acquisition', 'basePrice', 'options', 'connectivityCost', 'management', 'reserve'],
     programMarket: null,
     // Bridge aircraft: figures editable; model, comparables model/generation/variation
     // and its features are structural and carry over from the published costing.
@@ -384,7 +384,7 @@ const LABELS = {
   acquisition: 'Aircraft acquisition value', connectivityCost: 'Connectivity installation cost',
   management: 'bop Aero management', reserve: 'Refresh / Future Value Reserve',
   basePrice: 'Cirrus base price', options: 'Options & equipment',
-  sharesRemaining: 'Shares remaining (unsold)', aircraftHours: 'Aircraft scheduling hours (yearly)', aircraftDays: 'Aircraft scheduling days (yearly)',
+  sharesRemaining: 'Shares remaining (unsold)', unitsPerShare: 'Ownership units per share', aircraftHours: 'Aircraft scheduling hours (yearly)', aircraftDays: 'Aircraft scheduling days (yearly)',
   market: 'Comparables', features: 'Features', roundTo: 'Market price rounding', maxListingAgeDays: 'Listing age limit (days)',
   maxHours: 'Flying hours per share (yearly)',
   purchasePrice: 'Bridge aircraft purchase price', monthlyLoan: 'Bridge aircraft loan (monthly)', monthlyInsurance: 'Bridge aircraft insurance (monthly)',
@@ -406,7 +406,7 @@ function fmt(field, v) {
   if (field === 'maxListingAgeDays') return String(v);
   if (field === 'taxRate' || field === 'commissionRate' || ['activationRate', 'premiumRate', 'reserveShare'].includes(field)) return (v * 100).toFixed(2) + '%';
   if (field === 'founders') return v && typeof v.positions === 'number' ? String(v.positions) : '—';
-  if (['shares', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
+  if (['shares', 'unitsPerShare', 'sharesRemaining', 'aircraftHours', 'aircraftDays'].includes(field) || typeof v === 'boolean') return String(v);
   return '$' + Math.round(v).toLocaleString('en-US');
 }
 function same(x, y) { return JSON.stringify(x) === JSON.stringify(y); }

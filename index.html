@@ -281,6 +281,7 @@ function conc(p, baselineWord) {
   if (p === BASELINE) return '1.0x' + (baselineWord ? ' baseline' : '');
   return p.concentration.toFixed(1) + 'x ' + BASELINE.key;
 }
+function units(p) { return p.unitsPerShare + ' of ' + p.totalUnits + ' units (' + pct(p.equity) + ')'; }   // ownership units (2026-10-16)
 function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function fn(p) { return p.fixedCostFootnote ? '*' : ''; }
 // Feature notes live in the costing (edited in the costing editor), like every figure
@@ -342,7 +343,7 @@ function coverPage() {
     '<h2>Ownership Options at a Glance</h2>' +
     grid('Program', [
       ['Shares available',            function(p){ return p.shares; }],
-      ['Legal equity / interest',     function(p){ return pct(p.equity); }],
+      ['Legal equity / share',        function(p){ return units(p); }],
       ['Illustrative capital / share',function(p){ return p.approx ? tilde(p, compact(p.capPerShare)) : full(p.capPerShare); }],
       ['Annual Program Fee / share',  function(p){ return p.approx ? tilde(p, compact(p.annualFee)) : full(p.annualFee); }],
       ['Relative schedule concentration', function(p){ return conc(p); }],
@@ -352,8 +353,8 @@ function coverPage() {
       ['bop Aero hourly-use fee',     function(){ return '$0'; }]
     ]) +
     '<div class="key">You own the aircraft. bop Aero manages it. There is no bop Aero occupied-hour fee to use an aircraft you already own.</div>' +
-    '<p class="note">Each program includes one equal ownership interest retained by bop Aero. Owner program costs are allocated across the shares available for purchase: ' +
-      byKey('G1').shares + ' for G1, ' + byKey('G2').shares + ' for G2/G2+, and ' + byKey('G3').shares + ' for G3.</p>';
+    '<p class="note">Ownership is held in units: each share holds a fixed number of units and bop Aero retains one unit in every program. Owner program costs are allocated across the shares available for purchase: ' +
+      byKey('G1').shares + ' for G1, ' + byKey('G2').shares + ' for G2/G2+, and ' + byKey('G3').shares + ' for G3. Unit counts are distinct from the number of legal owners; ownership terms are subject to final legal review.</p>';
   return page('overview',
     '<div class="band cover"><img src="assets/bop-aero-logo.svg" alt="bop Aero">2026 SF50 Ownership Program Options' +
     '<span class="sub">Pre-owned G1, G2, G2+ and New G3</span></div>', body);
@@ -364,10 +365,11 @@ function economicsPage() {
     '<h2>Acquisition &amp; Capitalization</h2>' +
     '<p>Every program is shown using the same line-item structure so ownership and capitalization can be compared directly.</p>' +
     grid('Line Item', [
-      ['Total ownership interests',     function(p){ return p.interests; }],
+      ['Total ownership units',         function(p){ return p.totalUnits; }],
       ['Shares available for purchase', function(p){ return p.shares; }],
-      ['bop Aero retained interest',    function(){ return 1; }],
-      ['Legal equity per interest',     function(p){ return pct(p.equity); }],
+      ['Units per share',               function(p){ return p.unitsPerShare; }],
+      ['Legal equity per share',        function(p){ return pct(p.equity); }],
+      ['bop Aero retained',             function(p){ return '1 unit (' + pct(p.bopEquity) + ')'; }],
       ['Owner cost allocation',         function(p){ return share(p.allocation) + ' each'; }],
       ['Aircraft acquisition value',    function(p){ return tilde(p, compact(p.acquisition)); }],
       ['Connectivity installation',     function(p){ return p.connectivityCost ? tilde(p, compact(p.connectivityCost)) + ' required' : connectivityText(p); }],
@@ -403,10 +405,10 @@ function programPage(p) {
   var body =
     '<h2>Program Structure</h2>' +
     '<h3>1. Ownership Structure</h3>' + kv([
-      ['Total ownership interests', p.interests],
+      ['Total ownership units', p.totalUnits],
       ['Shares available for purchase', p.shares],
-      ['bop Aero retained interest', 1],
-      ['Legal equity per interest', pct(p.equity)],
+      ['Ownership per share', units(p)],
+      ['bop Aero retained', '1 of ' + p.totalUnits + ' units (' + pct(p.bopEquity) + ')'],
       ['Owner cost allocation', share(p.allocation) + ' per owner share'],
       ['Relative schedule concentration', conc(p, true)]
     ]) +
