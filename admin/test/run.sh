@@ -1,5 +1,5 @@
 #!/bin/bash
-# Costing editor Worker tests (SF50 at /, SR22T at /sr22t, Founder summary).
+# Costing editor Worker tests (SF50 at /, SR22T at /sr22t, Founder summary, comparison editor + planning guide).
 # Bundles admin/worker.js exactly as wrangler would (editor pages as text) and runs
 # both suites against mocked GitHub + Cloudflare Access. Needs ../sr22tProgram
 # checked out beside this repo, like the deploy.
@@ -11,3 +11,4 @@ npx -y esbuild "$REPO_DIR/admin/worker.js" --bundle --format=esm --loader:.html=
 cd "$HERE"
 REPO="$REPO_DIR" node sf50.test.mjs | grep -v '^PASS'
 REPO="$REPO_DIR" SR_REPO="$REPO_DIR/../sr22tProgram" node sr22t.test.mjs | grep -v '^PASS'
+REPO="$REPO_DIR" SR_REPO="$REPO_DIR/../sr22tProgram" node comparison.test.mjs | grep -v '^PASS'

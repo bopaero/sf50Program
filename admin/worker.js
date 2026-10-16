@@ -3,6 +3,9 @@
 //
 //   /          SF50 program  (bopaero/sf50Program)
 //   /sr22t     SR22T program (bopaero/sr22tProgram, added 2026-10-04)
+//   /founders  Founder's Circle Summary (internal, read-only)
+//   /comparison  aircraft comparison data editor (data/comparison.json, added 2026-10-16)
+//   /planning  internal Aircraft Cost Comparison planning guide (read-only, added 2026-10-16)
 //
 // For each aircraft, under its prefix:
 //   GET  <prefix>/              the editor page
@@ -27,8 +30,12 @@ import EDITOR_HTML from './editor.html';
 import SR22TCosting from '../../sr22tProgram/assets/costing.js';
 import SR22T_EDITOR_HTML from '../../sr22tProgram/admin/editor.html';
 import FOUNDERS_HTML from './founders.html';
+import AircraftComparison from '../assets/comparison.js';
+import COMPARISON_EDITOR_HTML from './comparison-editor.html';
+import PLANNING_HTML from './planning.html';
 
 const COSTING_PATH = 'data/costing.json';
+const COMPARISON_PATH = 'data/comparison.json';
 
 // Field lists rebuild every published object field by field, so nothing but
 // known figures reaches a commit.
@@ -77,6 +84,32 @@ export default {
       // Founder's Circle Summary (internal): built in the browser from BOTH costings
       if (request.method === 'GET' && url.pathname === '/founders') {
         return new Response(FOUNDERS_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(AIRCRAFT.sf50, [AIRCRAFT.sr22t.site]) });
+      }
+      // Internal planning guide (Raymond 2026-10-16: never public): built in the browser
+      // from BOTH costings and the comparison data
+      if (request.method === 'GET' && url.pathname === '/planning') {
+        return new Response(PLANNING_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(AIRCRAFT.sf50, [AIRCRAFT.sr22t.site]) });
+      }
+      // Comparison data editor: the pre-owned aircraft and planning candidates behind the
+      // customer comparison sheet and the planning guide. Commits to the SF50 repo.
+      if (url.pathname === '/comparison' || url.pathname.startsWith('/comparison/')) {
+        const cfg = AIRCRAFT.sf50, path = url.pathname.slice('/comparison'.length) || '/';
+        if (url.pathname === '/comparison') return Response.redirect(url.origin + '/comparison/', 302);
+        if (request.method === 'GET' && path === '/') {
+          return new Response(COMPARISON_EDITOR_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(cfg, [AIRCRAFT.sr22t.site]) });
+        }
+        if (request.method === 'GET' && path === '/api/data') {
+          const { data, sha } = await readJsonFile(env, cfg, COMPARISON_PATH);
+          return json(200, { comparison: data, sha, user });
+        }
+        if (request.method === 'POST' && path === '/api/publish') {
+          if (request.headers.get('Origin') !== url.origin) return json(403, { error: 'cross-origin request refused' });
+          return json(...(await publishComparison(await request.json(), env, user, cfg)));
+        }
+        if (request.method === 'GET' && path === '/api/status') {
+          return json(200, await status(url.searchParams.get('commit'), env, cfg));
+        }
+        return text(404, 'not found');
       }
       const cfg = aircraftFor(url.pathname);
       const path = url.pathname.slice(cfg.prefix.length) || '/';
@@ -187,6 +220,96 @@ async function readCosting(env, cfg) {
   const file = await r.json();
   const costing = JSON.parse(decodeBase64Utf8(file.content));
   return { costing, sha: file.sha };
+}
+
+async function readJsonFile(env, cfg, path) {
+  const r = await gh(env, cfg, '/contents/' + path + '?ref=main');
+  if (!r.ok) throw new Error('GitHub read failed: HTTP ' + r.status);
+  const file = await r.json();
+  return { data: JSON.parse(decodeBase64Utf8(file.content)), sha: file.sha };
+}
+
+// ── Comparison data ───────────────────────────────────────────────────────────
+const CMP = {
+  assumptions: ['depreciationRate', 'calendarYears', 'reserveMinutes'],
+  cls: ['aircraft', 'program', 'label', 'tripNm'],
+  payload: ['usefulLoad', 'usableFuelGal', 'ktas', 'gph', 'lbPerGal'],
+  aircraft: ['key', 'name', 'vintage', 'class', 'seats', 'price', 'insurance', 'hangar', 'inspection', 'subscriptions', 'unscheduledPerHour', 'fiki', 'ac', 'support', 'asOf'],
+  engine: ['label', 'cost', 'count', 'tbo', 'calendar', 'programPerHour'],
+  event: ['label', 'cost'],
+  rule: ['base', 'perPartner', 'cap'],
+  candidate: ['key', 'name', 'seats', 'price', 'priceNote', 'cruise', 'fuel', 'ac', 'fiki', 'internet', 'costsBeforeMgmt', 'eliminated', 'note']
+};
+function trimStrings(o) { for (const k of Object.keys(o)) if (typeof o[k] === 'string') { o[k] = o[k].trim(); if (o[k] === '' ) delete o[k]; } return o; }
+function cleanComparison(d) {
+  d = d || {};
+  const out = { assumptions: pick(d.assumptions, CMP.assumptions), classes: {} };
+  for (const k of AircraftComparison.CLASSES) {
+    const c = (d.classes || {})[k] || {};
+    out.classes[k] = { ...trimStrings(pick(c, CMP.cls)), benchmark: pick(c.benchmark, CMP.payload) };
+  }
+  out.aircraft = (Array.isArray(d.aircraft) ? d.aircraft : []).map(a => ({
+    ...trimStrings(pick(a, CMP.aircraft)),
+    engine: trimStrings(pick(a && a.engine, CMP.engine)),
+    event: trimStrings(pick(a && a.event, CMP.event)),
+    payload: pick(a && a.payload, CMP.payload),
+    sources: (Array.isArray(a && a.sources) ? a.sources : []).map(x => String(x).trim()).filter(Boolean)
+  }));
+  if (d.planning) {
+    const p = d.planning;
+    out.planning = {
+      managementRule: pick(p.managementRule, CMP.rule),
+      partnerCounts: Array.isArray(p.partnerCounts) ? p.partnerCounts.slice() : [],
+      programPartners: p.programPartners,
+      candidates: (Array.isArray(p.candidates) ? p.candidates : []).map(x => trimStrings(pick(x, CMP.candidate))),
+      notes: (Array.isArray(p.notes) ? p.notes : []).map(x => String(x).trim()).filter(Boolean)
+    };
+  }
+  return out;
+}
+// Field-level change list for the commit message and the confirm box
+function deepDiff(a, b, path = '', out = []) {
+  if (same(a, b)) return out;
+  const isObj = v => v && typeof v === 'object';
+  if (Array.isArray(a) && Array.isArray(b) && a.every(x => isObj(x) && x.key) && b.every(x => isObj(x) && x.key)) {
+    const ak = new Map(a.map(x => [x.key, x])), bk = new Map(b.map(x => [x.key, x]));
+    for (const [k, v] of bk) ak.has(k) ? deepDiff(ak.get(k), v, path + (path ? ' ' : '') + k, out) : out.push((path ? path + ' ' : '') + 'added ' + k);
+    for (const k of ak.keys()) if (!bk.has(k)) out.push((path ? path + ' ' : '') + 'removed ' + k);
+    if (!out.length && !same(a.map(x => x.key), b.map(x => x.key))) out.push((path || 'items') + ' reordered');
+    return out;
+  }
+  if (isObj(a) && isObj(b) && !Array.isArray(a) && !Array.isArray(b)) {
+    for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) deepDiff(a[k], b[k], path ? path + '.' + k : k, out);
+    return out;
+  }
+  const show = v => v === undefined ? '—' : typeof v === 'string' ? '"' + v + '"' : JSON.stringify(v);
+  out.push(path + ': ' + show(a) + ' → ' + show(b));
+  return out;
+}
+async function publishComparison(body, env, user, cfg) {
+  const draft = body && body.comparison, baseSha = body && body.sha;
+  const note = String((body && body.note) || '').trim().slice(0, 300);
+  if (!draft || !baseSha) return [400, { error: 'comparison and sha are required' }];
+  if (!note) return [400, { error: 'Describe the change — it becomes the published change note.' }];
+  const { data: current, sha } = await readJsonFile(env, cfg, COMPARISON_PATH);
+  if (sha !== baseSha) return [409, { error: 'The comparison was published from somewhere else since you opened the editor. Reload to start from the latest version.' }];
+  const next = { version: nextVersion(current.version), publishedAt: new Date().toISOString(), note, ...cleanComparison(draft) };
+  const problems = AircraftComparison.validate(next);
+  if (problems.length) return [400, { error: 'Not published: ' + problems.join('; ') }];
+  const { version: _v, publishedAt: _p, note: _n, ...curBody } = current;
+  const { version: _v2, publishedAt: _p2, note: _n2, ...nextBody } = next;
+  const changes = deepDiff(curBody, nextBody);
+  if (!changes.length) return [400, { error: 'Nothing changed — no new version published.' }];
+  const message = 'Comparison ' + next.version + ': ' + note + '\n\n' + changes.map(c => '- ' + c).join('\n') +
+    '\n\nPublished from the comparison editor by ' + user;
+  const r = await gh(env, cfg, '/contents/' + COMPARISON_PATH, {
+    method: 'PUT',
+    body: JSON.stringify({ message, content: btoaUtf8(JSON.stringify(next, null, 2) + '\n'), sha, branch: 'main', committer: { name: 'Comparison Editor', email: user } })
+  });
+  if (r.status === 409) return [409, { error: 'The comparison changed while publishing. Reload and try again.' }];
+  if (!r.ok) return [502, { error: 'GitHub commit failed: HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200) }];
+  const out = await r.json();
+  return [200, { version: next.version, commit: out.commit.sha, changes, site: cfg.site + '/comparison.html' }];
 }
 
 async function publish(body, env, user, cfg) {

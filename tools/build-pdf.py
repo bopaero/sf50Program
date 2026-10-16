@@ -39,6 +39,12 @@ DOCS = [('index.html', PDF_NAME, EXPECTED_PAGES, ''), ('expo.html', EXPO_PDF, 1,
 # One Financial Detail Sheet per pre-owned program, added 2026-10-16 (same page, ?p=<key>)
 DOCS += [('financial.html?p=' + k.replace('+', '%2B'), 'bop-Aero-SF50-%s-Financial-Detail-Sheet.pdf' % k.replace('+', 'plus'),
           2, '-financial-' + k.replace('+', 'plus').lower()) for k in ('G1', 'G2', 'G2+')]
+# Customer comparison (added 2026-10-16): pre-owned aircraft vs bop Aero shares. It depends on
+# THREE versions (this costing, the SR22T costing, data/comparison.json), so it is stamped and
+# archived with all three and checked against the comparison version.
+COMPARISON_PDF = 'bop-Aero-Aircraft-Ownership-Comparison.pdf'
+DOCS += [('comparison.html', COMPARISON_PDF, 2, None)]
+SR22T_COSTING = 'https://sr22tprogram.bopaero.com/data/costing.json'
 MAC_CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
 
@@ -85,6 +91,8 @@ def main():
     check_only = '--check' in args
     out_dir = args[args.index('--out') + 1] if '--out' in args else None
     version = json.load(open(os.path.join(REPO, 'data', 'costing.json')))['version']
+    cmp_version = json.load(open(os.path.join(REPO, 'data', 'comparison.json')))['version']
+    sr22t_version = None
 
     built, problems = [], []
     for page, name, expected, suffix in DOCS:
@@ -95,8 +103,16 @@ def main():
         bad = []
         if pages != expected:
             bad.append('rendered %d pages, expected %d' % (pages, expected))
-        if text.count(version) != expected:
-            bad.append('version %s appears on %d pages, expected %d' % (version, text.count(version), expected))
+        stamp = version if suffix is not None else 'Comparison ' + cmp_version
+        if text.count(stamp) != expected:
+            bad.append('version %s appears on %d pages, expected %d' % (stamp, text.count(stamp), expected))
+        if suffix is None:
+            m = re.search(r'Comparison (v[\d.-]+) · SF50 (v[\d.-]+) · SR22T (v[\d.-]+)', text)
+            if not m or m.group(1) != cmp_version or m.group(2) != version:
+                bad.append('comparison stamp does not name comparison %s and SF50 %s' % (cmp_version, version))
+            else:
+                sr22t_version = m.group(3)
+                suffix = '%s-comparison-sf50-%s-sr22t-%s' % (cmp_version, version, sr22t_version)
         if 'could not be displayed' in text:
             bad.append('the page reported an error: ' + text.strip().splitlines()[0][:200])
         # A formatting or data slip renders as literal JS values instead of figures
@@ -113,9 +129,16 @@ def main():
     if check_only:
         print('    --check: nothing written')
         return
+    if out_dir:
+        # What this build was made from; the comparison refresh compares it with the live SR22T costing
+        os.makedirs(os.path.join(out_dir, 'data'), exist_ok=True)
+        with open(os.path.join(out_dir, 'data', 'build.json'), 'w') as fh:
+            json.dump({'sf50': version, 'sr22t': sr22t_version, 'comparison': cmp_version}, fh)
+        print('    wrote ' + os.path.join(out_dir, 'data', 'build.json'))
     for name, tmp, pages, suffix in built:
+        archive = (suffix + '.pdf') if suffix.startswith(cmp_version + '-comparison') else (version + suffix + '.pdf')
         targets = ([os.path.join(out_dir, name)] if out_dir else
-                   [os.path.join(REPO, name), os.path.join(REPO, 'versions', version + suffix + '.pdf')])
+                   [os.path.join(REPO, name), os.path.join(REPO, 'versions', archive)])
         for t in targets:
             os.makedirs(os.path.dirname(t), exist_ok=True)
             shutil.copyfile(tmp, t)

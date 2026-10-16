@@ -148,7 +148,9 @@ const com = structuredClone(base); com.common.commissionRate = 0.03;
 r = await call('/api/publish', { token: T, method: 'POST', body: { costing: com, sha, note: 'commission agreed' } });
 c3 = JSON.parse(Buffer.from(lastPut.content, 'base64').toString());
 check('commission rate publishes', r.status === 200 && c3.common.commissionRate === 0.03, r.t);
-check('commit lists the commission rate', /Sales commission rate: 0\.00% → 3\.00%/.test(lastPut.message), lastPut.message);
+// Relative to the published rate (6% since v2026-10-16.1), so the test survives costing publishes
+const comFrom = (base.common.commissionRate * 100).toFixed(2).replace('.', '\\.');
+check('commit lists the commission rate', new RegExp('Sales commission rate: ' + comFrom + '% → 3\\.00%').test(lastPut.message), lastPut.message);
 const comBad = structuredClone(base); comBad.common.commissionRate = 0.5;
 r = await call('/api/publish', { token: T, method: 'POST', body: { costing: comBad, sha, note: 'x' } });
 check('commission rate over 10% → 400', r.status === 400 && /commissionRate/.test(r.t), r.t);

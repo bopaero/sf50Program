@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<!--
+  bop Aero — Pre-Owned Aircraft vs. bop Aero Shared Ownership (customer sheet, 2 pages).
+  Built 2026-10-16 from Raymond's decisions: one owner buying a pre-owned aircraft
+  outright vs one bop Aero share, fuel and pilot excluded on both sides, each class at
+  the hours its matching share provides, 3% yearly depreciation, and only aircraft
+  with FIKI, air conditioning and the matching bop aircraft's trip payload.
+  Every figure is live: the bop Aero shares come from BOTH costings (SF50 here, SR22T
+  from sr22tprogram.bopaero.com) and the pre-owned aircraft from data/comparison.json
+  (edited in the costing editor at /comparison), through assets/comparison.js.
+  Wording is edited here. The PDF is generated on every publish, and again whenever
+  the SR22T costing changes (.github/workflows/comparison-refresh.yml).
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Pre-Owned vs. Shared Ownership — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --navy:#003666; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#efeff2; --bop:#fff1e8; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #e9e9ec; color: var(--ink); font-family: Verdana, Tahoma, Arial, sans-serif; }
+.page { background:#fff; max-width: 8.5in; margin: 20px auto; padding: 0.4in 0.45in 0.3in; display:flex; flex-direction:column; box-shadow:0 2px 14px rgba(0,0,0,.12); }
+.band { background: var(--orange); color:#fff; text-align:center; padding: 12px 16px 13px; }
+.band img { display:block; width: 120px; height:auto; margin: 0 auto 5px; }
+.band h1 { margin:0; font-size: 18px; letter-spacing: .1em; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,.25); }
+.lede { font-size: 11px; line-height: 1.5; margin: 12px 2px 4px; }
+.lede b { color: var(--navy); }
+h2 { font-size: 12.5px; margin: 16px 0 2px; color: var(--navy); }
+h2 .sub { font-weight: normal; color: var(--muted); font-size: 10.5px; }
+h3 { font-size: 11.5px; margin: 14px 0 5px; color: var(--navy); }
+table { width: 100%; border-collapse: collapse; font-size: 10px; margin-top: 5px; }
+th { text-align: left; font-size: 8.6px; letter-spacing: .03em; text-transform: uppercase; color: #fff; background: var(--navy); padding: 6px 6px; font-weight: bold; }
+th.n, td.n { text-align: right; white-space: nowrap; }
+td { padding: 5px 6px; border-top: 1px solid var(--rule); vertical-align: top; }
+tr:nth-child(even) td { background: var(--stripe); }
+tr.bop td { background: var(--bop); font-weight: bold; border-top: 2px solid var(--orange); }
+td .yr { display:block; font-size: 8.5px; color: var(--muted); font-weight: normal; }
+td.ev { font-size: 9px; }
+.foot-note { font-size: 8.5px; color: var(--muted); font-style: italic; margin: 6px 2px 0; line-height: 1.4; }
+ul.points { margin: 4px 0 0; padding-left: 16px; font-size: 10px; line-height: 1.45; }
+ul.points li { margin-bottom: 5px; }
+ul.points b { color: var(--navy); }
+.honest { background: var(--stripe); border-left: 3px solid var(--orange); padding: 7px 10px; font-size: 10px; line-height: 1.45; margin-top: 10px; }
+.cols { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.small { font-size: 8.4px; line-height: 1.4; color: #333; }
+.small p { margin: 0 0 4px; }
+.small a { color: #333; text-decoration: none; }
+.mark-yes { color: #1a7f37; font-weight: bold; }
+.foot { margin-top:auto; padding-top: 12px; display:grid; grid-template-columns: 1fr 1fr 1fr; font-weight:bold; letter-spacing:.38em; font-size: 10.5px; text-align:center; position:relative; }
+.foot .ver { position:absolute; right:0; bottom:-13px; letter-spacing:0; font-weight:normal; font-size: 7.5px; color: var(--muted); }
+.err { color:#b91c1c; padding: 20px; }
+@page { size: letter; margin: 0; }
+@media print {
+  body { background:#fff; }
+  .page { width: 8.5in; height: 11in; max-width:none; margin:0; box-shadow:none; overflow:hidden; break-after: page; }
+  .page:last-child { break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 640px) {
+  .page { padding: 14px; } .cols { grid-template-columns: 1fr; }
+  table { font-size: 9px; } th, td { padding: 4px 3px; }
+  .foot { grid-template-columns: 1fr; letter-spacing:.2em; gap:4px; } .foot .ver { position: static; }
+}
+</style>
+</head>
+<body>
+<main id="doc"><noscript><p class="err">This page needs JavaScript to display.</p></noscript></main>
+<script src="assets/costing.js"></script>
+<script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
+<script src="assets/comparison.js"></script>
+<script>
+var SR22T_SITE = 'https://sr22tprogram.bopaero.com';
+function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+function k(n) { return n >= 1e6 ? '$' + (n / 1e6).toFixed(2).replace(/0$/, '') + 'M' : '$' + Math.round(n / 1000) + 'K'; }
+function esc(s) { return String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return u; } }
+function pct(x) { return Math.round(x * 100) + '%'; }
+
+function classTable(cl) {
+  var s = cl.share;
+  var head = '<tr><th>Aircraft</th><th class="n">Capital required</th><th class="n">Est. annual cost*</th><th class="n">Per flight hour</th><th>Next major cost to plan for</th></tr>';
+  var bop = '<tr class="bop"><td>bop Aero ' + esc(s.aircraft + ' ' + s.program) + ' share<span class="yr">New aircraft · 1 of ' + s.shares + ' shares</span></td>' +
+    '<td class="n">' + money(s.capital) + '</td><td class="n">' + money(s.annual) + '</td><td class="n">' + money(s.perHour) + '</td>' +
+    '<td class="ev">None to budget: maintenance, reserve and replacement are in the fixed Annual Program Fee</td></tr>';
+  var rows = cl.rows.map(function (r) {
+    return '<tr><td>' + esc(r.name) + '<span class="yr">' + esc(r.vintage) + ', pre-owned, owned alone</span></td>' +
+      '<td class="n">~' + k(r.capital) + '</td><td class="n">~' + money(Math.round(r.annual / 1000) * 1000) + '</td><td class="n">~' + money(Math.round(r.perHour / 10) * 10) + '</td>' +
+      '<td class="ev">' + esc(r.event.label) + ' · ~' + k(r.event.cost) + '</td></tr>';
+  }).join('');
+  return '<h2>' + esc(cl.label) + ' <span class="sub">· ' + cl.hours + ' flight hours a year, the hours one share provides</span></h2>' +
+    '<table>' + head + bop + rows + '</table>';
+}
+
+function render(sf, sr, cmpSrc) {
+  var problems = AircraftComparison.validate(cmpSrc).concat(SF50Costing.validate(sf)).concat(SR22TCosting.validate(sr));
+  if (problems.length) throw new Error('Data is not valid: ' + problems.join('; '));
+  var c = AircraftComparison.derive(cmpSrc, { SF50: SF50Costing.derive(sf), SR22T: SR22TCosting.derive(sr) });
+  var a = c.assumptions, P = c.classes.piston, T = c.classes.turbine;
+  var stamp = 'Comparison ' + c.version + ' · SF50 ' + sf.version + ' · SR22T ' + sr.version;
+  var foot = '<footer class="foot"><span>bopaero.com</span><span>(513) 450-2FLY</span><span>info@bopaero.com</span><span class="ver">' + esc(stamp) + '</span></footer>';
+  var calendarHours = a.calendarYears * P.hours;
+  var everyRow = P.rows.concat(T.rows);
+
+  var page1 =
+    '<section class="page">' +
+      '<div class="band"><img src="assets/bop-aero-logo-white.svg" alt="bop Aero"><h1>Pre-Owned Aircraft vs. bop Aero Shared Ownership</h1></div>' +
+      '<p class="lede">A pre-owned aircraft can look like the economical choice. The purchase price is only the start: the owner alone carries every fixed cost, every inspection, and the timing of the next engine. ' +
+      'Below, one owner buys a comparable pre-owned aircraft outright and flies it as much as <b>one bop Aero share</b> allows. Every aircraft shown has <b>known-ice protection (FIKI)</b>, <b>air conditioning</b>, and carries at least the matching bop Aero aircraft’s payload on a typical trip.</p>' +
+      classTable(P) + classTable(T) +
+      '<p class="foot-note">* Pre-owned: insurance, hangar, inspections, subscriptions, unscheduled maintenance, an engine program or overhaul reserve, and ' + pct(a.depreciationRate) + ' yearly depreciation. ' +
+      'bop Aero: the Annual Program Fee, which includes maintenance, fixed costs, management and the Future Value Reserve. Fuel and pilot are excluded on both sides. Pre-owned figures (~) are planning estimates from market listings and published operating data; see page 2.</p>' +
+      foot +
+    '</section>';
+
+  var support = everyRow.map(function (r) {
+    return '<tr><td>' + esc(r.name) + '</td><td>' + esc(AircraftComparison.EQUIP[r.fiki]) + '</td><td>' + esc(AircraftComparison.EQUIP[r.ac]) + '</td>' +
+      '<td class="n">~' + Math.round(r.tripPayload / 10) * 10 + ' lb</td><td class="ev">' + esc(r.support) + '</td></tr>';
+  }).join('');
+  var sources = everyRow.map(function (r) {
+    return '<p><b>' + esc(r.name) + ':</b> ' + r.sources.map(function (u) { return '<a href="' + esc(u) + '">' + esc(host(u)) + '</a>'; }).join(', ') + '</p>';
+  }).join('');
+
+  var page2 =
+    '<section class="page">' +
+      '<h3 style="margin-top:0">Why predictability matters</h3>' +
+      '<ul class="points">' +
+        '<li><b>Availability.</b> When an older aircraft is down for parts or an overdue repair, it does not fly. A bop Aero aircraft is new, under factory warranty and support, and its replacement is funded by the Future Value Reserve, so the costs and the schedule are known in advance.</li>' +
+        '<li><b>Uneven engine timing.</b> Engine makers set a calendar limit as well as an hours limit. At ' + P.hours + ' hours a year, a piston engine reaches the ' + a.calendarYears + '-year limit after about ' + calendarHours.toLocaleString('en-US') + ' hours, well before its overhaul time, so a low-use owner pays for an overhaul sooner than the logbook suggests. Every pre-owned aircraft is at a different point in that cycle.</li>' +
+        '<li><b>Large one-time costs.</b> Overhauls, hot sections and avionics upgrades arrive in lumps and can approach a sizable share of the aircraft’s price. Turbine engine programs smooth the engine cost into an hourly rate, which this comparison includes.</li>' +
+        '<li><b>Capital.</b> A share needs a fraction of the capital of buying an aircraft outright, leaving the rest of the money free.</li>' +
+      '</ul>' +
+      '<div class="honest"><b>An honest note:</b> most of the difference in annual cost comes from sharing. A sole owner pays all of the insurance, hangar and inspections alone; a share spreads them across the owners. Age adds variability on top of that, especially the timing of engines, parts and shop availability.</div>' +
+      '<h3>Equipment, payload and support</h3>' +
+      '<table><tr><th>Aircraft</th><th>FIKI</th><th>Air conditioning</th><th class="n">Trip payload</th><th>Support status</th></tr>' + support + '</table>' +
+      '<p class="foot-note">Trip payload: useful load minus fuel for the trip plus a ' + a.reserveMinutes + '-minute reserve: ' + P.tripNm + ' nm for pistons (bop Aero SR22T: ~' + Math.round(P.benchmarkPayload / 10) * 10 + ' lb), ' +
+        T.tripNm + ' nm for turbines (bop Aero SF50 G3: ~' + Math.round(T.benchmarkPayload / 10) * 10 + ' lb). Pre-owned figures assume an example equipped with FIKI and air conditioning.</p>' +
+      '<div class="cols" style="margin-top:10px">' +
+        '<div class="small"><h3 style="margin-top:0">How the figures are built</h3>' +
+          '<p>Basis: one owner buys the pre-owned aircraft outright; compared with one bop Aero share. Pistons are costed at ' + P.hours + ' hours a year (one SR22T share), turbines at ' + T.hours + ' hours (one SF50 G3 share).</p>' +
+          '<p>Capital required: typical asking price of an equipped example, versus the share’s Program Cost. Depreciation: ' + pct(a.depreciationRate) + ' of the price each year.</p>' +
+          '<p>Engines: enrolled engine-program hourly rate for turbines; for pistons, an overhaul reserve over the hours limit or the ' + a.calendarYears + '-year calendar limit, whichever comes first.</p>' +
+          '<p>Excluded on both sides: fuel, oil and pilot. Aircraft without FIKI, air conditioning or the trip payload are not shown.</p>' +
+          '<p>Estimates, not quotes: individual aircraft vary with condition, engine time, equipment and location. bop Aero figures are the current published program figures.</p>' +
+        '</div>' +
+        '<div class="small"><h3 style="margin-top:0">Sources</h3>' + sources + '</div>' +
+      '</div>' +
+      foot +
+    '</section>';
+
+  document.getElementById('doc').innerHTML = page1 + page2;
+  document.documentElement.setAttribute('data-versions', JSON.stringify({ comparison: c.version, sf50: sf.version, sr22t: sr.version }));
+  document.documentElement.setAttribute('data-rendered', c.version);   // build-pdf.py waits for this
+}
+function getJson(u) { return fetch(u, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(u + ' HTTP ' + r.status); return r.json(); }); }
+Promise.all([getJson('data/costing.json'), getJson(SR22T_SITE + '/data/costing.json?t=' + Date.now()), getJson('data/comparison.json')])
+  .then(function (x) {
+    if (!window.SR22TCosting) throw new Error('the SR22T costing library did not load');
+    render(x[0], x[1], x[2]);
+  })
+  .catch(function(err){
+    document.getElementById('doc').innerHTML = '<p class="err">This page could not be displayed. ' + esc(err.message || err) + '</p>';
+    document.documentElement.setAttribute('data-render-error', String(err.message || err));
+  });
+</script>
+</body>
+</html>

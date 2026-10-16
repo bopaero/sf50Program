@@ -43,9 +43,9 @@ jobs:
       - name: Assemble site
         run: |
           mkdir _site
-          cp -r index.html expo.html financial.html CNAME robots.txt assets data versions _site/
+          cp -r index.html expo.html financial.html comparison.html CNAME robots.txt assets data versions _site/
 
-      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheets, versioned, clean)
+      - name: Build PDF (fails the publish unless 9 pages + the 1-page expo sheet + the 2-page financial sheets + the 2-page comparison, versioned, clean)
         run: python3 tools/build-pdf.py --out _site
 
       - name: Archive this version's PDF
@@ -63,6 +63,15 @@ jobs:
               added="$added $a"
             fi
           done
+          # The customer comparison also depends on the SR22T costing and data/comparison.json,
+          # so it is archived under all three versions (from the build's data/build.json)
+          cv=$(python3 -c "import json;b=json.load(open('_site/data/build.json'));print('%s-comparison-sf50-%s-sr22t-%s'%(b['comparison'],b['sf50'],b['sr22t']))")
+          a="versions/$cv.pdf"
+          if [ ! -f "$a" ]; then
+            cp "_site/bop-Aero-Aircraft-Ownership-Comparison.pdf" "$a"
+            cp "$a" _site/versions/
+            added="$added $a"
+          fi
           if [ -n "$added" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"

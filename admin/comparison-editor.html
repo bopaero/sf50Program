@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Comparison Editor — bop Aero</title>
+<style>
+:root { --orange:#FF6700; --ink:#1a1a1a; --muted:#6b6b70; --rule:#d9d9de; --stripe:#f3f3f5; --warn:#b45309; --warn-bg:#fff4e5; --bad:#b91c1c; --ok:#047857; color-scheme: light; }
+* { box-sizing: border-box; }
+body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; color:var(--ink); background:#eceef1; }
+header { position:sticky; top:0; z-index:5; background:#111; color:#fff; padding: calc(env(safe-area-inset-top,0px) + 10px) 16px 10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+header h1 { font-size:16px; margin:0 auto 0 0; }
+header a { color:#ffb37f; font-size:12px; }
+header .who, header .ver { font-size:12px; color:#bbb; }
+main { max-width: 980px; margin: 0 auto; padding: 16px; }
+.panel { background:#fff; border-radius:8px; padding:16px; box-shadow:0 1px 6px rgba(0,0,0,.08); margin-bottom:16px; }
+h2 { font-size:15px; margin:0 0 10px; }
+h2 small, .muted { font-weight:normal; color:var(--muted); font-size:12px; }
+.grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:8px 12px; }
+label { display:block; font-size:12px; color:var(--muted); }
+label input, label select, label textarea { display:block; width:100%; margin-top:2px; font:inherit; font-size:14px; color:var(--ink); padding:5px 6px; border:1px solid var(--rule); border-radius:4px; background:#fff; }
+label.wide { grid-column: 1 / -1; }
+label textarea { min-height: 60px; font-size:12px; }
+.changed { background:#fff8ec !important; border-color:#f0b35c !important; }
+.invalid { border-color:var(--bad) !important; background:#fdecec !important; }
+details.item { border:1px solid var(--rule); border-radius:6px; margin-top:8px; }
+details.item > summary { cursor:pointer; padding:8px 10px; font-size:14px; font-weight:600; display:flex; gap:10px; flex-wrap:wrap; align-items:baseline; }
+details.item > summary .calc { font-weight:normal; font-size:12px; color:var(--muted); }
+details.item > summary .in { color:var(--ok); font-size:12px; }
+details.item > summary .out { color:var(--warn); font-size:12px; }
+details.item > div { padding: 4px 10px 12px; }
+h3 { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); margin:12px 0 4px; grid-column: 1 / -1; }
+.errors div { background:#fdecec; color:var(--bad); border-left:3px solid var(--bad); padding:7px 10px; font-size:13px; margin-top:6px; }
+textarea#note { width:100%; font:inherit; font-size:14px; padding:8px; border:1px solid var(--rule); border-radius:4px; min-height:56px; }
+button { font:inherit; font-size:14px; font-weight:700; border:0; border-radius:5px; padding:9px 16px; cursor:pointer; }
+button.primary { background:var(--orange); color:#fff; }
+button.secondary { background:#e5e7eb; color:var(--ink); }
+button.small { font-size:12px; padding:5px 10px; }
+button:disabled { opacity:.45; cursor:default; }
+.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+.confirm { margin-top:12px; padding:12px; border:2px solid var(--orange); border-radius:6px; background:#fffaf5; font-size:13px; }
+.confirm ul { margin:6px 0 10px; padding-left:18px; max-height: 300px; overflow:auto; }
+.status { margin-top:12px; font-size:13px; }
+.status.ok { color:var(--ok); font-weight:700; }
+.status.bad { color:var(--bad); font-weight:700; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Aircraft Comparison Editor</h1>
+  <a href="https://sf50program.bopaero.com/comparison.html" target="_blank" rel="noopener">Customer sheet</a>
+  <a href="/planning" target="_blank" rel="noopener">Planning guide</a>
+  <a href="/">SF50 costing</a>
+  <a href="/sr22t/">SR22T costing</a>
+  <span class="ver" id="ver"></span>
+  <span class="who">Signed in as {{USER}}</span>
+</header>
+<main>
+  <div class="panel"><p class="muted" style="margin:0">Pre-owned aircraft and planning candidates behind the customer comparison sheet and the internal planning guide.
+    The bop Aero shares always come from the published costings, so they are not edited here. Publishing commits <code>data/comparison.json</code> and rebuilds the customer PDF.
+    Figures in each aircraft's summary are calculated live from your draft and the published costings.</p></div>
+  <div id="form"><p class="muted">Loading…</p></div>
+  <div class="panel">
+    <h2>Publish</h2>
+    <div class="errors" id="errors"></div>
+    <label class="wide">What changed and why (becomes the change note)<textarea id="note" maxlength="300" placeholder="e.g. Market update: TBM 850 equipped asking price $2.35M → $2.25M (4 listings)"></textarea></label>
+    <div class="row"><button class="primary" id="reviewBtn">Review changes</button><button class="secondary" id="resetBtn">Discard draft</button></div>
+    <div class="confirm" id="confirmBox" hidden><b>Publish these changes?</b><ul id="confirmList"></ul>
+      <div class="row"><button class="primary" id="publishBtn">Publish</button><button class="secondary" id="cancelBtn">Cancel</button></div></div>
+    <div class="status" id="status"></div>
+  </div>
+</main>
+<script src="https://sf50program.bopaero.com/assets/costing.js"></script>
+<script src="https://sr22tprogram.bopaero.com/assets/costing.js"></script>
+<script src="https://sf50program.bopaero.com/assets/comparison.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+  var C = window.AircraftComparison;
+  var published, draft, sha, costings = null;
+  function clone(x) { return JSON.parse(JSON.stringify(x)); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function get(o, path) { return path.split('.').reduce(function (x, k) { return x == null ? undefined : x[k]; }, o); }
+  function set(o, path, v) {
+    var ks = path.split('.'), last = ks.pop();
+    var t = ks.reduce(function (x, k) { if (x[k] == null) x[k] = {}; return x[k]; }, o);
+    if (v === undefined) delete t[last]; else t[last] = v;
+  }
+
+  // Field kinds: num, pct (stored 0.03, shown 3), text, bool, opt (optional number), lines (array of strings), list (comma numbers), sel
+  var EQUIP = C.EQUIP_STATUS.map(function (s) { return [s, C.EQUIP[s]]; });
+  var AIRCRAFT_FIELDS = [
+    ['h', 'Identity'], ['name', 'Name', 'text'], ['vintage', 'Model years', 'text'], ['class', 'Class', 'sel', [['piston', 'Piston'], ['turbine', 'Turbine']]],
+    ['seats', 'Seats', 'num'], ['key', 'Key (letters, digits, dashes)', 'text'], ['asOf', 'Figures as of (YYYY-MM-DD)', 'text'],
+    ['h', 'Ownership cost inputs'], ['price', 'Asking price, equipped ($)', 'num'], ['insurance', 'Insurance ($/yr)', 'num'], ['hangar', 'Hangar ($/yr)', 'num'],
+    ['inspection', 'Inspections ($/yr)', 'num'], ['subscriptions', 'Subscriptions ($/yr)', 'num'], ['unscheduledPerHour', 'Unscheduled maintenance ($/flight hr)', 'num'],
+    ['h', 'Engine'], ['engine.label', 'Engine event label', 'text'], ['engine.cost', 'Overhaul / replacement per engine ($)', 'num'], ['engine.count', 'Engines', 'num'],
+    ['engine.tbo', 'Overhaul interval (hours)', 'num'], ['engine.calendar', 'Calendar limit applies', 'bool'], ['engine.programPerHour', 'Engine program $/flight hr (blank = use reserve)', 'opt'],
+    ['h', 'Next major cost'], ['event.label', 'Label', 'text'], ['event.cost', 'Cost ($)', 'num'],
+    ['h', 'Equipment and support'], ['fiki', 'FIKI', 'sel', EQUIP], ['ac', 'Air conditioning', 'sel', EQUIP], ['support', 'Support status (shown to customers)', 'text', null, 'wide'],
+    ['h', 'Payload (typical trip)'], ['payload.usefulLoad', 'Useful load, equipped (lb)', 'num'], ['payload.usableFuelGal', 'Usable fuel (gal)', 'num'],
+    ['payload.ktas', 'Cruise (KTAS)', 'num'], ['payload.gph', 'Fuel burn (gal/hr)', 'num'], ['payload.lbPerGal', 'Fuel weight (lb/gal)', 'num'],
+    ['h', 'Sources'], ['sources', 'One https URL per line', 'lines', null, 'wide']
+  ];
+  var CANDIDATE_FIELDS = [
+    ['name', 'Name', 'text'], ['key', 'Key', 'text'], ['seats', 'Seats', 'num'], ['price', 'Acquisition ($)', 'num'], ['priceNote', 'Price note (optional)', 'text'],
+    ['cruise', 'Cruise', 'text'], ['fuel', 'Typical fuel', 'text'], ['ac', 'A/C', 'bool'], ['fiki', 'FIKI', 'bool'], ['internet', 'Internet', 'bool'],
+    ['costsBeforeMgmt', 'Aircraft costs before management ($/yr)', 'num'], ['eliminated', 'Eliminated because (blank = active)', 'text', null, 'wide'], ['note', 'Note (optional)', 'text', null, 'wide']
+  ];
+
+  function input(base, f) {
+    var path = base + f[0], kind = f[2], v = get(draft, path), p = get(published, path);
+    var cls = JSON.stringify(v) !== JSON.stringify(p) ? ' class="changed"' : '';
+    var attr = ' data-path="' + esc(path) + '" data-kind="' + kind + '"' + cls;
+    var ctl;
+    if (kind === 'sel') ctl = '<select' + attr + '>' + f[3].map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
+    else if (kind === 'bool') ctl = '<select' + attr + '><option value="true"' + (v ? ' selected' : '') + '>Yes</option><option value="false"' + (!v ? ' selected' : '') + '>No</option></select>';
+    else if (kind === 'lines') ctl = '<textarea' + attr + '>' + esc((v || []).join('\n')) + '</textarea>';
+    else {
+      var shown = v === undefined || v === null ? '' : kind === 'pct' ? +(v * 100).toFixed(4) : kind === 'list' ? v.join(', ') : v;
+      ctl = '<input type="text"' + attr + ' value="' + esc(shown) + '">';
+    }
+    return '<label' + (f[4] === 'wide' || kind === 'lines' ? ' class="wide"' : '') + '>' + esc(f[1]) + ctl + '</label>';
+  }
+  function fields(base, list) {
+    return list.map(function (f) { return f[0] === 'h' ? '<h3>' + esc(f[1]) + '</h3>' : input(base, f); }).join('');
+  }
+  function read(el) {
+    var k = el.getAttribute('data-kind'), raw = el.value;
+    if (k === 'bool') return raw === 'true';
+    if (k === 'sel' || k === 'text') return raw.trim() === '' ? undefined : raw;
+    if (k === 'lines') return raw.split(/\n+/).map(function (s) { return s.trim(); }).filter(Boolean);
+    if (k === 'list') return raw.split(/[,\s]+/).filter(Boolean).map(Number);
+    if (raw.trim() === '') return k === 'opt' ? undefined : NaN;
+    var n = Number(raw.replace(/[$,%\s]/g, ''));
+    return k === 'pct' ? n / 100 : n;
+  }
+
+  function derived() {
+    if (!costings) return null;
+    try { return C.validate(draft).length ? null : C.derive(draft, costings); } catch (e) { return null; }
+  }
+  function summary(a, d) {
+    var r = d && d.aircraft.filter(function (x) { return x.key === a.key; })[0];
+    var calc = r ? '<span class="calc">~' + money(r.annual) + '/yr · ~' + money(r.perHour) + '/hr at ' + r.hours + ' h' + (r.calendarLimited ? ' · engine on calendar' : '') + '</span>' +
+      (r.qualifies ? '<span class="in">on the customer sheet</span>' : '<span class="out">not shown: ' + esc(r.reasons.join('; ')) + '</span>') : '';
+    return esc(a.name || a.key) + ' <span class="calc">' + esc(a.vintage || '') + ' · ' + money(a.price || 0) + '</span>' + calc;
+  }
+
+  function build() {
+    var d = derived(), open = {};
+    Array.prototype.forEach.call(document.querySelectorAll('details.item[open]'), function (x) { open[x.getAttribute('data-id')] = true; });
+    var h = '';
+    h += '<div class="panel"><h2>Assumptions</h2><div class="grid">' + fields('assumptions.', [
+      ['depreciationRate', 'Depreciation (% of price per year)', 'pct'], ['calendarYears', 'Engine calendar limit (years)', 'num'], ['reserveMinutes', 'Trip fuel reserve (minutes)', 'num']]) + '</div>';
+    C.CLASSES.forEach(function (k) {
+      var cl = d && d.classes[k];
+      h += '<h3 style="margin-top:14px">' + esc(draft.classes[k].label) + (cl ? ' <span class="muted" style="text-transform:none">· ' + cl.hours + ' h/yr from the costing · benchmark trip payload ~' + Math.round(cl.benchmarkPayload) + ' lb</span>' : '') + '</h3>' +
+        '<div class="grid">' + fields('classes.' + k + '.', [['label', 'Heading on the sheet', 'text', null, 'wide'], ['tripNm', 'Typical trip (nm)', 'num'],
+          ['benchmark.usefulLoad', draft.classes[k].aircraft + ' useful load (lb)', 'num'], ['benchmark.usableFuelGal', 'Usable fuel (gal)', 'num'],
+          ['benchmark.ktas', 'Cruise (KTAS)', 'num'], ['benchmark.gph', 'Fuel burn (gal/hr)', 'num'], ['benchmark.lbPerGal', 'Fuel weight (lb/gal)', 'num']]) + '</div>';
+    });
+    h += '</div>';
+    h += '<div class="panel"><h2>Pre-owned aircraft <small>— shown to customers only when FIKI, A/C and the trip payload all qualify</small></h2>';
+    draft.aircraft.forEach(function (a, i) {
+      h += '<details class="item" data-id="a' + i + '"' + (open['a' + i] ? ' open' : '') + '><summary>' + summary(a, d) + '</summary><div><div class="grid">' + fields('aircraft.' + i + '.', AIRCRAFT_FIELDS) + '</div>' +
+        '<div class="row"><button class="secondary small" data-remove-aircraft="' + i + '">Remove this aircraft</button></div></div></details>';
+    });
+    h += '<div class="row"><button class="secondary small" id="addAircraft">Add an aircraft</button></div></div>';
+    var pl = draft.planning;
+    if (pl) {
+      h += '<div class="panel"><h2>Planning guide <small>— internal only</small></h2><div class="grid">' + fields('planning.', [
+        ['managementRule.base', 'Management fee base ($)', 'num'], ['managementRule.perPartner', 'Per partner ($)', 'num'], ['managementRule.cap', 'Cap ($)', 'num'],
+        ['partnerCounts', 'Partner counts shown (comma list)', 'list'], ['programPartners', 'Program partners (working fee)', 'num'],
+        ['notes', 'Notes (one per line)', 'lines', null, 'wide']]) + '</div>';
+      pl.candidates.forEach(function (x, i) {
+        h += '<details class="item" data-id="c' + i + '"' + (open['c' + i] ? ' open' : '') + '><summary>' + esc(x.name || x.key) + ' <span class="calc">' + money(x.price || 0) + (x.eliminated ? ' · eliminated' : '') + '</span></summary><div><div class="grid">' +
+          fields('planning.candidates.' + i + '.', CANDIDATE_FIELDS) + '</div><div class="row"><button class="secondary small" data-remove-candidate="' + i + '">Remove this candidate</button></div></div></details>';
+      });
+      h += '<div class="row"><button class="secondary small" id="addCandidate">Add a candidate</button></div></div>';
+    }
+    $('form').innerHTML = h;
+    $('addAircraft').onclick = function () {
+      var a = clone(draft.aircraft[draft.aircraft.length - 1]); a.key = 'new-aircraft-' + (draft.aircraft.length + 1); a.name = 'New aircraft';
+      draft.aircraft.push(a); build(); refresh();
+    };
+    if ($('addCandidate')) $('addCandidate').onclick = function () {
+      var c = clone(draft.planning.candidates[draft.planning.candidates.length - 1] || {}); c.key = 'new-candidate-' + (draft.planning.candidates.length + 1); c.name = 'New candidate';
+      draft.planning.candidates.push(c); build(); refresh();
+    };
+    Array.prototype.forEach.call(document.querySelectorAll('[data-remove-aircraft]'), function (b) {
+      b.onclick = function () { draft.aircraft.splice(+b.getAttribute('data-remove-aircraft'), 1); build(); refresh(); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-remove-candidate]'), function (b) {
+      b.onclick = function () { draft.planning.candidates.splice(+b.getAttribute('data-remove-candidate'), 1); build(); refresh(); };
+    });
+  }
+  $('form').addEventListener('change', function (e) {
+    var el = e.target, path = el.getAttribute && el.getAttribute('data-path');
+    if (!path) return;
+    set(draft, path, read(el));
+    build(); refresh();
+  });
+
+  function changes() {
+    var out = [];
+    (function walk(a, b, p) {
+      if (JSON.stringify(a) === JSON.stringify(b)) return;
+      if (a && b && typeof a === 'object' && typeof b === 'object' && !Array.isArray(a) && !Array.isArray(b)) {
+        Object.keys(Object.assign({}, a, b)).forEach(function (k) { walk(a[k], b[k], p ? p + '.' + k : k); });
+      } else out.push(p + ': ' + JSON.stringify(a) + ' → ' + JSON.stringify(b));
+    })(published, draft, '');
+    return out.filter(function (c) { return !/^(version|publishedAt|note):/.test(c); });
+  }
+  function refresh() {
+    var problems = C.validate(draft);
+    $('errors').innerHTML = problems.map(function (p) { return '<div>' + esc(p) + '</div>'; }).join('');
+    $('reviewBtn').disabled = !!problems.length || !changes().length;
+  }
+  function setStatus(msg, cls) { var s = $('status'); s.textContent = msg; s.className = 'status' + (cls ? ' ' + cls : ''); }
+  function getJson(u) { return fetch(u, { cache: 'no-store' }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); }); }
+
+  function load() {
+    Promise.all([getJson('/comparison/api/data'), getJson('/api/costing'), getJson('/sr22t/api/costing')]).then(function (x) {
+      published = x[0].comparison; sha = x[0].sha; draft = clone(published);
+      costings = { SF50: SF50Costing.derive(x[1].costing), SR22T: SR22TCosting.derive(x[2].costing) };
+      $('ver').textContent = 'Published ' + published.version + ' · SF50 ' + x[1].costing.version + ' · SR22T ' + x[2].costing.version;
+      build(); refresh();
+    }).catch(function (e) { $('form').innerHTML = '<div class="panel errors"><div>Could not load: ' + esc(e.message) + '</div></div>'; });
+  }
+
+  $('resetBtn').addEventListener('click', function () { draft = clone(published); build(); refresh(); setStatus(''); });
+  $('reviewBtn').addEventListener('click', function () {
+    if (!$('note').value.trim()) { setStatus('Add a short note describing the change first.', 'bad'); $('note').focus(); return; }
+    $('confirmList').innerHTML = changes().map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+    $('confirmBox').hidden = false; setStatus('');
+  });
+  $('cancelBtn').addEventListener('click', function () { $('confirmBox').hidden = true; });
+  $('publishBtn').addEventListener('click', function () {
+    $('publishBtn').disabled = true; setStatus('Publishing…');
+    fetch('/comparison/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ comparison: draft, sha: sha, note: $('note').value.trim() }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
+      .then(function (j) {
+        $('confirmBox').hidden = true; $('note').value = '';
+        setStatus(j.version + ' committed. Rebuilding the customer sheet…');
+        poll(j.commit, j.version, 0);
+      })
+      .catch(function (e) { setStatus(e.message, 'bad'); $('publishBtn').disabled = false; });
+  });
+  function poll(commit, version, n) {
+    getJson('/comparison/api/status?commit=' + commit).then(function (s) {
+      if (s.state === 'live') { setStatus(version + ' is live on the customer sheet and the planning guide.', 'ok'); load(); $('publishBtn').disabled = false; }
+      else if (s.state === 'failed') { setStatus(version + ' was committed but the publish failed, so the site still shows the previous version. Details: ' + (s.url || 'GitHub Actions'), 'bad'); $('publishBtn').disabled = false; }
+      else if (n < 60) setTimeout(function () { poll(commit, version, n + 1); }, 6000);
+      else setStatus('Still building after 6 minutes — check GitHub Actions.', 'bad');
+    });
+  }
+  load();
+})();
+</script>
+</body>
+</html>
