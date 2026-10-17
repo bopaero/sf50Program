@@ -1,20 +1,20 @@
 {
-  "checkedAt": "2026-10-16T15:23:33+00:00",
+  "checkedAt": "2026-10-17T14:13:21+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
-  "costingVersion": "v2026-10-13.2",
-  "feedListings": 386,
-  "visionJetListings": 33,
+  "costingVersion": "v2026-10-16.2",
+  "feedListings": 383,
+  "visionJetListings": 32,
   "excluded": {
-    "sold or pending": 6,
+    "sold or pending": 7,
     "no price": 1,
     "implausible price": 0,
     "stale": 3
   },
   "programs": {
     "G1": {
-      "current": 1900000,
+      "current": 1800000,
       "generation": "G1",
       "years": [
         2016,
@@ -72,7 +72,7 @@
         2019,
         2021
       ],
-      "count": 7,
+      "count": 6,
       "comparables": [
         {
           "registration": "N473MM",
@@ -127,19 +127,6 @@
           "available": true
         },
         {
-          "registration": "N697DC",
-          "serial": "0200",
-          "year": 2020,
-          "generation": "G2",
-          "variation": "Elite",
-          "hours": 1400,
-          "price": 2700000,
-          "modified": "2026-09-10",
-          "link": "https://cirrusaircraft.com/aircraft-listings/n697dc-2020-g2-vision-jet/",
-          "certified": true,
-          "available": true
-        },
-        {
           "registration": "N50G",
           "serial": "0098",
           "year": 2019,
@@ -166,17 +153,17 @@
           "available": true
         }
       ],
-      "median": 2600000,
+      "median": 2600000.0,
       "proposed": 2600000
     },
     "G2+": {
-      "current": 3100000,
+      "current": 3000000,
       "generation": "G2+",
       "years": [
         2021,
         2023
       ],
-      "count": 6,
+      "count": 5,
       "comparables": [
         {
           "registration": "N28VJ",
@@ -189,19 +176,6 @@
           "modified": "2026-10-09",
           "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-0322-n28vj/",
           "certified": true,
-          "available": true
-        },
-        {
-          "registration": "N73SG",
-          "serial": "0284",
-          "year": 2021,
-          "generation": "G2+",
-          "variation": "Elite",
-          "hours": 340,
-          "price": 2949900,
-          "modified": "2026-08-20",
-          "link": "https://aerista.com/showroom/n73sg/",
-          "certified": false,
           "available": true
         },
         {
@@ -257,7 +231,7 @@
           "available": true
         }
       ],
-      "median": 2999900.0,
+      "median": 2999900,
       "proposed": 3000000
     },
     "G3": {
@@ -266,19 +240,6 @@
       "options": 835000
     }
   },
-  "proposals": [
-    {
-      "program": "G1",
-      "field": "acquisition",
-      "from": 1900000,
-      "to": 1800000
-    },
-    {
-      "program": "G2+",
-      "field": "acquisition",
-      "from": 3100000,
-      "to": 3000000
-    }
-  ],
+  "proposals": [],
   "declined": false
 }
