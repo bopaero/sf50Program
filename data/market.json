@@ -1,16 +1,16 @@
 {
-  "checkedAt": "2026-10-19T17:29:58+00:00",
+  "checkedAt": "2026-10-20T15:40:12+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-16.2",
-  "feedListings": 385,
-  "visionJetListings": 32,
+  "feedListings": 390,
+  "visionJetListings": 33,
   "excluded": {
     "sold or pending": 7,
     "no price": 1,
     "implausible price": 0,
-    "stale": 3
+    "stale": 2
   },
   "programs": {
     "G1": {
@@ -72,7 +72,7 @@
         2019,
         2021
       ],
-      "count": 6,
+      "count": 8,
       "comparables": [
         {
           "registration": "N473MM",
@@ -84,6 +84,19 @@
           "price": 2349000,
           "modified": "2026-10-02",
           "link": "https://lonemountainaircraft.com/inventory/n473mm/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N218HP",
+          "serial": "0121",
+          "year": 2019,
+          "generation": "G2",
+          "variation": "Elite",
+          "hours": 1795,
+          "price": 2399000,
+          "modified": "2026-10-19",
+          "link": "https://aerista.com/showroom/n218hp/",
           "certified": false,
           "available": true
         },
@@ -149,6 +162,19 @@
           "price": 2845000,
           "modified": "2026-09-08",
           "link": "https://lonemountainaircraft.com/inventory/ph-ukr-2/",
+          "certified": false,
+          "available": true
+        },
+        {
+          "registration": "N98GF",
+          "serial": "0194",
+          "year": 2020,
+          "generation": "G2",
+          "variation": "Elite",
+          "hours": 875,
+          "price": 2849900,
+          "modified": "2026-10-20",
+          "link": "https://aerista.com/showroom/n98gf/",
           "certified": false,
           "available": true
         }
