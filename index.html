@@ -524,7 +524,7 @@ function showError(err) {
 
 // ?preview — the private costing editor shows an unpublished draft here. The
 // page only accepts drafts from the editor's origin and never saves anything.
-var PREVIEW_ORIGINS = ['https://sf50-costing.compilotrc.workers.dev'];
+var PREVIEW_ORIGINS = ['https://bopaero-admin.compilotrc.workers.dev', 'https://sf50-costing.compilotrc.workers.dev'];
 if (/[?&]preview(=|&|$)/.test(location.search)) {
   document.body.classList.add('preview');
   window.addEventListener('message', function(e) {

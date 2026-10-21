@@ -67,7 +67,7 @@ button.small { font-size:12px; padding:5px 10px; }
 </head>
 <body>
 <header>
-  <h1>SF50 Costing Editor</h1>
+  <h1>SF50 Costing Editor <small style="font-weight:normal;font-size:12px"><a href="/" style="color:#bbb">All editors</a> · <a href="/sr22t/" style="color:#bbb">SR22T editor</a></small></h1>
   <span class="ver" id="pubVersion">Loading…</span>
   <span class="who">Signed in as {{USER}}</span>
 </header>
@@ -130,6 +130,7 @@ button.small { font-size:12px; padding:5px 10px; }
 (function () {
   'use strict';
   var SITE = 'https://sf50program.bopaero.com';
+  var API = '/sf50/api';   // served at /sf50 by the bopaero-admin Worker (2026-10-21)
   var COMMON_FIELDS = [
     ['fixedCost', 'Aircraft fixed-cost reference (annual)', 'money'],
     ['jetstream', 'JetStream at acquisition', 'money'],
@@ -208,7 +209,7 @@ button.small { font-size:12px; padding:5px 10px; }
   function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
   function load() {
-    fetch('/api/costing', { cache: 'no-store' })
+    fetch(API + '/costing', { cache: 'no-store' })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
       .then(function (j) {
         published = j.costing; sha = j.sha; draft = clone(published);
@@ -312,7 +313,7 @@ button.small { font-size:12px; padding:5px 10px; }
   // own "from", so a snapshot taken before a publish can't propose a stale change.
   var marketData = null;
   function loadMarket() {
-    fetch('/api/market', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+    fetch(API + '/market', { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
       marketData = j; renderMarket();
     }).catch(function (e) { $('marketBody').textContent = 'Could not load the market check: ' + e.message; });
   }
@@ -445,7 +446,7 @@ button.small { font-size:12px; padding:5px 10px; }
   $('cancelBtn').addEventListener('click', function () { $('confirmBox').hidden = true; });
   $('publishBtn').addEventListener('click', function () {
     $('publishBtn').disabled = true; setStatus('Publishing…');
-    fetch('/api/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    fetch(API + '/publish', { method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ costing: draft, sha: sha, note: $('note').value.trim() }) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); return j; }); })
       .then(function (j) {
@@ -457,7 +458,7 @@ button.small { font-size:12px; padding:5px 10px; }
   });
 
   function poll(commit, version, n) {
-    fetch('/api/status?commit=' + commit, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+    fetch(API + '/status?commit=' + commit, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
       if (s.state === 'live') {
         setStatus(version + ' is live on ' + SITE.replace('https://', '') + ' with its PDF.', 'ok');
         load(); $('publishBtn').disabled = false;

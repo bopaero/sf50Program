@@ -204,7 +204,7 @@ def summary(r):
                 e['count']))
     ex = ', '.join('%d %s' % (v, k) for k, v in r['excluded'].items() if v)
     lines += ['', 'From %d Vision Jet listings in the feed%s.' % (r['visionJetListings'], ' (excluded: ' + ex + ')' if ex else '')]
-    lines += ['', ('**%d proposed change%s** — review and publish in the costing editor: https://sf50-costing.compilotrc.workers.dev'
+    lines += ['', ('**%d proposed change%s** — review and publish in the costing editor: https://bopaero-admin.compilotrc.workers.dev/sf50/'
                    % (len(r['proposals']), '' if len(r['proposals']) == 1 else 's')) if r['proposals'] else 'No changes proposed.']
     return '\n'.join(lines)
 

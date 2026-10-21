@@ -10,8 +10,9 @@ a historical record only.
 
 ## Changing costing — the costing editor
 
-**https://sf50-costing.compilotrc.workers.dev** (private: Cloudflare Access,
-one-time code e-mailed to an allowed address).
+**https://bopaero-admin.compilotrc.workers.dev/sf50/** (private: Cloudflare Access). The Worker (`bopaero-admin`) lives in
+bopaero/programs `admin/`; this repo holds only the SF50 editor page, `admin/editor.html`,
+bundled into it. (Until 2026-10-21 it was the `sf50-costing` Worker in this repo.)
 
 1. Edit any figure. The preview on the right is the real document, recalculated
    as you type; "Resulting figures" shows each per-owner change, with warnings
@@ -36,16 +37,10 @@ the site and PDF in one step. The PDF is not committed at the repo root.
 
 ## The editor Worker (`admin/`)
 
-Since 2026-10-04 this one Worker is the costing editor for **every** aircraft, all
-behind the same Cloudflare Access login: SF50 at `/`, SR22T at `/sr22t`
-(`bopaero/sr22tProgram` — its editor page and `costing.js` are bundled from
-`../../sr22tProgram`, so deploy with that repo checked out beside this one).
-
-`admin/worker.js` + `admin/editor.html`, deployed with
-`npx wrangler deploy -c admin/wrangler.toml`. It verifies the Access JWT itself
-(signature, audience, issuer, expiry, e-mail allowlist) and fails closed until
-`ACCESS_TEAM_DOMAIN` / `ACCESS_AUD` are set. Secret `GITHUB_TOKEN`: fine-grained,
-this repo only, Contents read/write + Actions read — never committed.
+One Worker is the costing editor for **every** aircraft, all behind the same Cloudflare
+Access login: SF50 at `/sf50`, SR22T at `/sr22t`. Its source, tests, deploy and secret are
+documented in bopaero/programs `admin/` (deploy there with this repo and sr22tProgram
+checked out beside it).
 
 ## Expo 1-pager
 
@@ -82,8 +77,7 @@ costings and the comparison data every 15 minutes). Here:
 - `comparison.html` and `founders-*.html` are redirects to the new addresses. Their PDFs can't
   redirect, so the last copies built here (`legacy/`) stay at the old PDF addresses, frozen.
   Their archives up to 2026-10-21 stay in `versions/`.
-- **Still here until the editor Worker moves:** `data/comparison.json` + `assets/comparison.js`
-  (read live by programs.bopaero.com, edited at the Worker's `/comparison/`, checked monthly by the
-  market routine), the internal planning guide (`admin/planning.html`, `/planning`) and the
-  Founder's Circle Summary (`admin/founders.html`, `/founders`, which loads `founders.js` from
-  programs.bopaero.com). Tests: `bash admin/test/run.sh` (comparison suite included).
+- The comparison data (`data/comparison.json`, `assets/comparison.js`), the admin Worker
+  (`bopaero-admin`, with the internal planning guide and Founder's Circle Summary) and their tests
+  moved to bopaero/programs on 2026-10-21. Only the SF50 editor page (`admin/editor.html`) stays
+  here, bundled into that Worker.
