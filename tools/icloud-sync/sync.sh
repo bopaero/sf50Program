@@ -1,11 +1,12 @@
 #!/bin/bash
-# Copies the live, costing-generated prospect PDFs into iCloud Detail Sheets/ so
-# Raymond finds them where he looks. Runs from launchd every 15 minutes
+# Copies the live, costing-generated prospect PDFs into Detail Sheets/ in the team's
+# Google Shared Drive "Bop Aero" (the single source of truth since 2026-10-21; it was
+# iCloud Drive before), so Raymond and the team find them where they look. Runs from launchd every 15 minutes
 # (com.bopaero.icloud-sync, see install.sh). A file is replaced only when the
 # live PDF differs, and only with a download that is really a PDF.
 # The program sites stay the source; these copies are never edited by hand.
 set -u
-DEST="${DEST:-$HOME/Library/Mobile Documents/com~apple~CloudDocs/Bop Aero/BopAeroMediaAssets/Detail Sheets}"
+DEST="${DEST:-$HOME/Library/CloudStorage/GoogleDrive-raymond@bopaero.com/Shared drives/Bop Aero/BopAeroMediaAssets/Detail Sheets}"
 SF50=https://sf50program.bopaero.com
 SR22T=https://sr22tprogram.bopaero.com
 FILES=(
