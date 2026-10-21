@@ -157,6 +157,7 @@ check('commission rate over 10% → 400', r.status === 400 && /commissionRate/.t
 // ── Founder's Circle settings + summary (2026-10-10)
 r = await call('/founders', { token: T });
 check('Founder summary page served behind Access', r.status === 200 && /Founder.s Circle Economic/.test(r.t) && /script-src[^;]*sr22tprogram\.bopaero\.com/.test(r.h.get('content-security-policy')), r.status + ' ' + r.h.get('content-security-policy'));
+check('Founder summary may load the shared terms from programs.bopaero.com (moved 2026-10-21)', /script-src[^;]*programs\.bopaero\.com/.test(r.h.get('content-security-policy')) && /programs\.bopaero\.com\/assets\/founders\.js/.test(r.t), r.h.get('content-security-policy'));
 r = await call('/founders');
 check('Founder summary refused without sign-in', r.status === 401, r.status);
 const fo = structuredClone(base); fo.common.founders.premiumRate = 0.3; fo.programs[3].founders.positions = 3; fo.common.founders.sneaky = 1;

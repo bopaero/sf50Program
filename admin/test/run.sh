@@ -12,4 +12,3 @@ cd "$HERE"
 REPO="$REPO_DIR" node sf50.test.mjs | grep -v '^PASS'
 REPO="$REPO_DIR" SR_REPO="$REPO_DIR/../sr22tProgram" node sr22t.test.mjs | grep -v '^PASS'
 REPO="$REPO_DIR" SR_REPO="$REPO_DIR/../sr22tProgram" node comparison.test.mjs | grep -v '^PASS'
-REPO="$REPO_DIR" SR_REPO="$REPO_DIR/../sr22tProgram" node founders.test.mjs | grep -v '^PASS'

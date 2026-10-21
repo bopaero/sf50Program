@@ -36,6 +36,8 @@ import PLANNING_HTML from './planning.html';
 
 const COSTING_PATH = 'data/costing.json';
 const COMPARISON_PATH = 'data/comparison.json';
+// Documents covering more than one program (LOI, comparison, Founder's Circle) live here since 2026-10-21
+const PROGRAMS_SITE = 'https://programs.bopaero.com';
 
 // Field lists rebuild every published object field by field, so nothing but
 // known figures reaches a commit.
@@ -83,7 +85,7 @@ export default {
     try {
       // Founder's Circle Summary (internal): built in the browser from BOTH costings
       if (request.method === 'GET' && url.pathname === '/founders') {
-        return new Response(FOUNDERS_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(AIRCRAFT.sf50, [AIRCRAFT.sr22t.site]) });
+        return new Response(FOUNDERS_HTML.replace('{{USER}}', escapeHtml(user)), { headers: pageHeaders(AIRCRAFT.sf50, [AIRCRAFT.sr22t.site, PROGRAMS_SITE]) });
       }
       // Internal planning guide (Raymond 2026-10-16: never public): built in the browser
       // from BOTH costings and the comparison data
@@ -309,7 +311,7 @@ async function publishComparison(body, env, user, cfg) {
   if (r.status === 409) return [409, { error: 'The comparison changed while publishing. Reload and try again.' }];
   if (!r.ok) return [502, { error: 'GitHub commit failed: HTTP ' + r.status + ' ' + (await r.text()).slice(0, 200) }];
   const out = await r.json();
-  return [200, { version: next.version, commit: out.commit.sha, changes, site: cfg.site + '/comparison.html' }];
+  return [200, { version: next.version, commit: out.commit.sha, changes, site: PROGRAMS_SITE + '/comparison.html' }];
 }
 
 async function publish(body, env, user, cfg) {

@@ -1,13 +1,15 @@
 #!/bin/bash
-# Runs sync.sh against a scratch folder: first run must copy all 10 PDFs,
+# Runs sync.sh against scratch folders: first run must copy all 11 PDFs (10 + the LOI to the Admin folder),
 # second run must change nothing, a corrupted copy must be replaced.
 set -eu
 here=$(cd "$(dirname "$0")" && pwd)
 d=$(mktemp -d); trap 'rm -rf "$d"' EXIT
 pass=0; fail=0
 check() { if eval "$2"; then pass=$((pass+1)); else echo "FAIL: $1"; fail=$((fail+1)); fi; }
+export ADMIN_DEST="$d/admin"; mkdir "$ADMIN_DEST"
 out=$(DEST="$d" "$here/sync.sh")
-check "first run copies 10" '[ "$(echo "$out" | grep -c updated)" = 10 ]'
+check "first run copies 11" '[ "$(echo "$out" | grep -c updated)" = 11 ]'
+check "LOI lands in the Admin folder" '[ -f "$ADMIN_DEST/bop-Aero-Letter-of-Intent.pdf" ] && [ ! -f "$d/bop-Aero-Letter-of-Intent.pdf" ]'
 check "all are PDFs" '[ "$(for f in "$d"/*.pdf; do head -c 5 "$f"; echo; done | grep -c %PDF-)" = 10 ]'
 out=$(DEST="$d" "$here/sync.sh")
 check "second run is a no-op" '[ -z "$out" ]'

@@ -72,48 +72,18 @@ programs with `financial.html?p=G1` / `?p=G2` / `?p=G2%2B` →
 model years from the program's market range, give a connectivity installation its own line,
 leave out Founder's Circle (G3 only), and carry the illustrative-figures footnote.
 
-## Aircraft comparison (customer sheet + internal planning guide)
+## Documents covering more than one program → programs.bopaero.com
 
-Added 2026-10-16. Two documents, both built from the live costings so they never go stale:
+Moved 2026-10-21 to **bopaero/programs** (programs.bopaero.com): the Letter of Intent, the customer
+comparison (`comparison.html`) and the Founder's Circle Insert + Detail Sheet, with
+`assets/founders.js` and their tests. That repo builds, archives and refreshes them (it polls both
+costings and the comparison data every 15 minutes). Here:
 
-- **Customer sheet** — `comparison.html` → `bop-Aero-Aircraft-Ownership-Comparison.pdf` (2 Letter
-  pages, public/unlisted). One owner buying a pre-owned aircraft outright vs one bop Aero share,
-  fuel and pilot excluded, each class at its share's hours (pistons: SR22T `maxHours`; turbines:
-  SF50 G3 `schedulingHours`), 3% depreciation. Only aircraft with FIKI, air conditioning and at
-  least the matching bop aircraft's typical-trip payload are shown — computed, not hand-picked.
-  Stamped `Comparison v… · SF50 v… · SR22T v…` and archived as
-  `versions/<comparison>-comparison-sf50-<v>-sr22t-<v>.pdf`.
-- **Internal planning guide** — `admin/planning.html`, served only by the editor Worker at
-  `/planning` behind Cloudflare Access (never on the public site). Replaces the hand-kept
-  "6-Seat Aircraft Financial Comparison": candidate programs, management-fee schedule (checked
-  live against both costings), custom 2–8 partner economics, and the pre-owned screening.
-  "Download PDF" prints it.
-
-Inputs: `data/comparison.json` (pre-owned aircraft, candidates, assumptions, sources), validated
-and computed by `assets/comparison.js`. Edit it in the editor Worker at `/comparison/` — publishing
-commits the file with a version note and rebuilds the customer PDF, same as a costing publish.
-
-Living triggers: an SF50 costing or comparison publish pushes here → Publish rebuilds. An SR22T
-costing publish lands in the other repo, so `.github/workflows/comparison-refresh.yml` checks every
-15 minutes whether the live SR22T costing differs from the one this site was built from
-(`data/build.json`, written by the build) and starts Publish if so (repo GITHUB_TOKEN only).
-Tests: `bash admin/test/run.sh` (comparison suite included).
-
-## Founder's Circle Insert + Detail Sheet
-
-Added 2026-10-16. Both are built from **both** costings (SF50 here, SR22T from
-sr22tprogram.bopaero.com) and stamped `SF50 <v> · SR22T <v>` on every page; an SR22T
-publish rebuilds them through `comparison-refresh.yml`, like the comparison.
-
-- `founders-insert.html` → `bop-Aero-Founders-Circle-Insert.pdf` (2 pp). Rebuilt from
-  Raymond's Pages Insert Rev_7. Carries the program (benefits, limited positions, the
-  repurchase path) but **no financial figures**: the build refuses to publish it if a
-  `$` amount or a percentage appears.
-- `founders-detail.html` → `bop-Aero-Founders-Circle-Detail-Sheet.pdf` (2 pp). Styled like
-  the Financial Detail Sheets: share price, activation fee, annual fee + premium, positions,
-  repurchase terms and the minimum-cash-by-tenure table. Customer-facing, so the internal
-  liquidity-reserve allocation and company economics stay in the internal Summary (`/founders`).
-- `assets/founders.js` holds the wording that is not a costing figure (benefits, repurchase
-  terms, tenure schedule, the fixed-fee sentence). The Insert, the Detail Sheet and the
-  internal Summary all read it. Tests: `admin/test/founders.test.mjs` (in `run.sh`).
-- Archived as `versions/<sf50 v>-founders-insert-sr22t-<sr22t v>.pdf` (and `-founders-detail-`).
+- `comparison.html` and `founders-*.html` are redirects to the new addresses. Their PDFs can't
+  redirect, so the last copies built here (`legacy/`) stay at the old PDF addresses, frozen.
+  Their archives up to 2026-10-21 stay in `versions/`.
+- **Still here until the editor Worker moves:** `data/comparison.json` + `assets/comparison.js`
+  (read live by programs.bopaero.com, edited at the Worker's `/comparison/`, checked monthly by the
+  market routine), the internal planning guide (`admin/planning.html`, `/planning`) and the
+  Founder's Circle Summary (`admin/founders.html`, `/founders`, which loads `founders.js` from
+  programs.bopaero.com). Tests: `bash admin/test/run.sh` (comparison suite included).
