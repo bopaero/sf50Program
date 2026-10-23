@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-22T15:54:02+00:00",
+  "checkedAt": "2026-10-23T15:45:20+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
@@ -10,7 +10,7 @@
     "sold or pending": 7,
     "no price": 1,
     "implausible price": 0,
-    "stale": 2
+    "stale": 3
   },
   "programs": {
     "G1": {
@@ -20,7 +20,7 @@
         2016,
         2018
       ],
-      "count": 4,
+      "count": 3,
       "comparables": [
         {
           "registration": "N223WY",
@@ -49,19 +49,6 @@
           "available": true
         },
         {
-          "registration": "N967PT",
-          "serial": "0042",
-          "year": 2018,
-          "generation": "G1",
-          "variation": "",
-          "hours": 1551,
-          "price": 1995000,
-          "modified": "2026-07-24",
-          "link": "https://lonemountainaircraft.com/inventory/n967pt/",
-          "certified": false,
-          "available": true
-        },
-        {
           "registration": "N5360X",
           "serial": "0076",
           "year": 2018,
@@ -75,8 +62,8 @@
           "available": true
         }
       ],
-      "median": 1892000.0,
-      "proposed": 1900000
+      "median": 1789000,
+      "proposed": 1800000
     },
     "G2": {
       "current": 2600000,
@@ -279,13 +266,6 @@
       "options": 835000
     }
   },
-  "proposals": [
-    {
-      "program": "G1",
-      "field": "acquisition",
-      "from": 1800000,
-      "to": 1900000
-    }
-  ],
+  "proposals": [],
   "declined": false
 }
