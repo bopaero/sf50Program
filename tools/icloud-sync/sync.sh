@@ -6,7 +6,7 @@
 # live PDF differs, and only with a download that is really a PDF.
 # The program sites stay the source; these copies are never edited by hand.
 set -u
-DEST="${DEST:-$HOME/Library/CloudStorage/GoogleDrive-raymond@bopaero.com/Shared drives/Bop Aero/BopAeroMediaAssets/Detail Sheets}"
+DEST="${DEST:-$HOME/Library/CloudStorage/GoogleDrive-raymond@bopaero.com/Shared drives/bop Aero - Team/BopAeroMediaAssets/Detail Sheets}"
 SF50=https://sf50program.bopaero.com
 SR22T=https://sr22tprogram.bopaero.com
 PROGRAMS=https://programs.bopaero.com   # documents covering more than one program (2026-10-21)
@@ -23,7 +23,7 @@ FILES=(
   "$SR22T/bop-Aero-SR22T-Expo-1-Pager.pdf"
 )
 # The Letter of Intent is an agreement, so it goes to the Admin drive beside the old LOIs (2026-10-21)
-ADMIN_DEST="${ADMIN_DEST:-$HOME/Library/CloudStorage/GoogleDrive-raymond@bopaero.com/My Drive/bop Aero – Admin/1. Company & Legal/Agreements/LOIs}"
+ADMIN_DEST="${ADMIN_DEST:-$HOME/Library/CloudStorage/GoogleDrive-raymond@bopaero.com/Shared drives/bop Aero - Admin/1. Company & Legal/Agreements/LOIs}"
 ADMIN_FILES=(
   "$PROGRAMS/bop-Aero-Letter-of-Intent.pdf"
 )
