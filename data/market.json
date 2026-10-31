@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-10-30T17:02:10+00:00",
+  "checkedAt": "2026-10-31T16:07:11+00:00",
   "source": "cirrusaircraft.com pre-owned listings",
   "roundTo": 50000,
   "maxListingAgeDays": 90,
   "costingVersion": "v2026-10-16.2",
-  "feedListings": 397,
-  "visionJetListings": 36,
+  "feedListings": 393,
+  "visionJetListings": 35,
   "excluded": {
     "sold or pending": 7,
     "no price": 1,
@@ -189,7 +189,7 @@
         2021,
         2023
       ],
-      "count": 5,
+      "count": 4,
       "comparables": [
         {
           "registration": "N28VJ",
@@ -202,19 +202,6 @@
           "modified": "2026-10-09",
           "link": "https://cirrusaircraft.com/aircraft-listings/vision-jet-g2-0322-n28vj/",
           "certified": true,
-          "available": true
-        },
-        {
-          "registration": "N71AB",
-          "serial": "0341",
-          "year": 2022,
-          "generation": "G2+",
-          "variation": "Elite",
-          "hours": 905,
-          "price": 2999900,
-          "modified": "2026-10-04",
-          "link": "https://aerista.com/showroom/n71ab/",
-          "certified": false,
           "available": true
         },
         {
@@ -257,8 +244,8 @@
           "available": true
         }
       ],
-      "median": 2999900,
-      "proposed": 3000000
+      "median": 3049950.0,
+      "proposed": 3050000
     },
     "G3": {
       "currentBase": 2850000,
@@ -266,6 +253,13 @@
       "options": 835000
     }
   },
-  "proposals": [],
+  "proposals": [
+    {
+      "program": "G2+",
+      "field": "acquisition",
+      "from": 3000000,
+      "to": 3050000
+    }
+  ],
   "declined": false
 }
